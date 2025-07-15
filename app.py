@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 import sqlite3
 
 app = Flask(__name__)
@@ -116,6 +116,17 @@ def signup_ngo():
     return render_template('signup_ngo.html')
 
 
+@app.route('/user/donate')
+def user_donate_with_ngos():  # 👈 changed name
+    conn = sqlite3.connect('users.db')
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM ngos")
+    ngos = cursor.fetchall()
+    conn.close()
+    return render_template('user_donate.html', ngos=ngos)
+
+
 @app.route('/signup/shopkeeper', methods=['GET', 'POST'])
 def signup_shopkeeper():
     if request.method == 'POST':
@@ -175,6 +186,41 @@ def user_donate():
 @app.route('/user/find-vet')
 def user_find_vet():
     return render_template('user_find_vet.html')
+
+@app.route('/submit-donation', methods=['POST'])
+def submit_donation():
+    try:
+        data = request.get_json()
+        print("Received donation data:", data)  # helpful for debugging
+
+        conn = sqlite3.connect('donations.db')
+        cursor = conn.cursor()
+        cursor.execute('''
+        INSERT INTO donations (
+            name, email, phone, amount, purpose,
+            recipient, payment_method, anonymous, date, status
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (
+        data['name'],
+        data['email'],
+        data['phone'],
+        data['amount'],
+        data['purpose'],
+        data['recipient'],  # 🆕 Yeh line zaruri hai
+        data['paymentMethod'],
+        int(data['anonymous']),
+        data['date'],
+        data['status']
+))
+        conn.commit()
+        conn.close()
+
+        return jsonify({"success": True, "message": "Donation recorded successfully!"})
+    
+    except Exception as e:
+         import traceback
+         traceback.print_exc()  # 🔥 print the full error trace in terminal
+         return jsonify({"success": False, "message": "Something went wrong"}), 500
 
 
 # ------------------- NGO SUBPAGES -------------------
