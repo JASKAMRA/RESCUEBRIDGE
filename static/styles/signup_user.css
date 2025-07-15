@@ -6,7 +6,7 @@
 
 body {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #ff8a65 0%, #ff7043 50%, #ff5722 100%);
+  background: linear-gradient(135deg, #319177 0%, #2d8269 50%, #29735c 100%);
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -36,7 +36,7 @@ body {
   background: linear-gradient(
     45deg,
     transparent 30%,
-    rgba(255, 138, 101, 0.05) 50%,
+    rgba(49, 145, 119, 0.05) 50%,
     transparent 70%
   );
   animation: shimmer 3s infinite;
@@ -85,7 +85,7 @@ body {
 .page-title {
   font-size: 2.5rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #ff6f00, #ff8f00);
+  background: linear-gradient(135deg, #319177, #2d8269);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -102,7 +102,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: linear-gradient(135deg, #ff6f00, #ff8f00);
+  background: linear-gradient(135deg, #319177, #2d8269);
   color: white;
   padding: 8px 20px;
   border-radius: 20px;
@@ -139,7 +139,7 @@ body {
 .form-input {
   width: 100%;
   padding: 15px 20px;
-  border: 2px solid rgba(255, 111, 0, 0.2);
+  border: 2px solid rgba(49, 145, 119, 0.2);
   border-radius: 15px;
   font-size: 1rem;
   background: rgba(255, 255, 255, 0.8);
@@ -148,8 +148,8 @@ body {
 }
 
 .form-input:focus {
-  border-color: #ff6f00;
-  box-shadow: 0 0 0 3px rgba(255, 111, 0, 0.1);
+  border-color: #319177;
+  box-shadow: 0 0 0 3px rgba(49, 145, 119, 0.1);
   background: rgba(255, 255, 255, 0.95);
 }
 
@@ -160,7 +160,7 @@ body {
 .form-select {
   width: 100%;
   padding: 15px 20px;
-  border: 2px solid rgba(255, 111, 0, 0.2);
+  border: 2px solid rgba(49, 145, 119, 0.2);
   border-radius: 15px;
   font-size: 1rem;
   background: rgba(255, 255, 255, 0.8);
@@ -170,15 +170,15 @@ body {
 }
 
 .form-select:focus {
-  border-color: #ff6f00;
-  box-shadow: 0 0 0 3px rgba(255, 111, 0, 0.1);
+  border-color: #319177;
+  box-shadow: 0 0 0 3px rgba(49, 145, 119, 0.1);
   background: rgba(255, 255, 255, 0.95);
 }
 
 .submit-btn {
   width: 100%;
   padding: 18px;
-  background: linear-gradient(135deg, #ff6f00, #ff8f00);
+  background: linear-gradient(135deg, #319177, #2d8269);
   color: white;
   border: none;
   border-radius: 15px;
@@ -186,13 +186,13 @@ body {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 15px 30px rgba(255, 111, 0, 0.3);
+  box-shadow: 0 15px 30px rgba(49, 145, 119, 0.3);
   margin-top: 10px;
 }
 
 .submit-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 20px 40px rgba(255, 111, 0, 0.4);
+  box-shadow: 0 20px 40px rgba(49, 145, 119, 0.4);
 }
 
 .submit-btn:active {
@@ -203,7 +203,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: #ff6f00;
+  color: #319177;
   text-decoration: none;
   font-weight: 600;
   margin-bottom: 30px;
@@ -213,7 +213,7 @@ body {
 }
 
 .back-link:hover {
-  color: #ff8f00;
+  color: #2d8269;
 }
 
 .login-link {
@@ -225,13 +225,13 @@ body {
 }
 
 .login-link a {
-  color: #ff6f00;
+  color: #319177;
   text-decoration: none;
   font-weight: 600;
 }
 
 .login-link a:hover {
-  color: #ff8f00;
+  color: #2d8269;
 }
 
 /* Mobile Responsive */
