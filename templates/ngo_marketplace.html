@@ -481,7 +481,7 @@
                     <div class="brand-name">RescueBridge</div>
                 </div>
                 <div class="user-actions">
-                    <a href="#" class="purchases-btn">📦 My Purchases</a>
+                    <a href="ngo_my_purchases.html" class="purchases-btn">📦 My Purchases</a>
                     <button class="cart-btn" onclick="toggleCart()">
                         🛒 Cart
                         <span class="cart-count" id="cartCount">0</span>
@@ -799,13 +799,29 @@
                 return;
             }
             
-            // Simulate checkout process
-            showMessage('Redirecting to checkout...', 'success');
+            // Save order to localStorage
+            const order = {
+                id: Date.now(),
+                items: [...cart],
+                total: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+                date: new Date().toLocaleString(),
+                status: 'Processing'
+            };
+            
+            // Get existing orders or create empty array
+            let orders = JSON.parse(localStorage.getItem('ngo_orders') || '[]');
+            orders.push(order);
+            localStorage.setItem('ngo_orders', JSON.stringify(orders));
+            
+            // Clear cart
+            cart = [];
+            updateCartDisplay();
+            
+            showMessage('Order placed successfully! Redirecting to purchases...', 'success');
+            
+            // Redirect to purchases page
             setTimeout(() => {
-                // Clear cart after successful checkout
-                cart = [];
-                updateCartDisplay();
-                showMessage('Order placed successfully!', 'success');
+                window.location.href = 'ngo_my_purchases.html';
             }, 2000);
         }
 
