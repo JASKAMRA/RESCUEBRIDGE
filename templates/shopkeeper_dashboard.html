@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopkeeper Dashboard - PharmaBridge</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/styles/shopkeeper_dashboard.css" />
+</head>
+<body>
+
+    <div class="container">
+        <div class="dashboard-section">
+            <div class="header-container">
+                <div class="pharmacy-icon">💊</div>
+                <h1 class="welcome-text">Shopkeeper Dashboard</h1>
+                <p class="subtitle">Manage your pharmacy operations efficiently</p>
+            </div>
+
+            <div class="dashboard-buttons">
+                <button class="dashboard-btn btn-prescription" onclick="handlePrescriptionRequests()">
+                    <div class="btn-icon">📋</div>
+                    <div class="btn-title">Prescription Medicine Request Planner</div>
+                    <div class="btn-description">Handle prescription requests and manage inventory</div>
+                </button>
+
+                <button class="dashboard-btn btn-medicine" onclick="handleMedicinePlanner()">
+                    <div class="btn-icon">💉</div>
+                    <div class="btn-title">Medicine Planner</div>
+                    <div class="btn-description">Plan and organize medicine inventory</div>
+                </button>
+            </div>
+
+            <div class="stats-section">
+                <div class="stat-card">
+                    <div class="stat-number">156</div>
+                    <div class="stat-label">Prescriptions Today</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">89%</div>
+                    <div class="stat-label">Stock Level</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">42</div>
+                    <div class="stat-label">Pending Orders</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function handlePrescriptionRequests() {
+            // Add your prescription request planner logic here
+            alert('Opening Prescription Medicine Request Planner...');
+            // You can redirect to another page or show a modal
+            // window.location.href = '/prescription-planner';
+        }
+
+        function handleMedicinePlanner() {
+            // Add your medicine planner logic here
+            alert('Opening Medicine Planner...');
+            // You can redirect to another page or show a modal
+            // window.location.href = '/medicine-planner';
+        }
+
+        // Add floating animation to buttons on hover
+        document.querySelectorAll('.dashboard-btn').forEach(btn => {
+            btn.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px) scale(1.02)';
+            });
+            
+            btn.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+
+        // Add click animation
+        document.querySelectorAll('.dashboard-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.style.transform = 'translateY(-2px) scale(0.98)';
+                setTimeout(() => {
+                    this.style.transform = 'translateY(-5px) scale(1.02)';
+                }, 100);
+            });
+        });
+    </script>
+</body>
+</html>
