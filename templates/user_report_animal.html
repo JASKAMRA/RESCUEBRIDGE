@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Stray Animal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="user_styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🐕 Report Stray Animal</h1>
+            <p>Help us rescue and care for stray animals in your area</p>
+            <a href="user_dashboard.html" class="back-btn">← Back to Dashboard</a>
+        </div>
+
+        <div class="form-container">
+            <form id="reportForm">
+                <div class="section">
+                    <h3>📍 Location Information</h3>
+                    <div class="form-group">
+                        <label for="location">Current Location</label>
+                        <input type="text" id="location" required placeholder="Enter address or landmark">
+                    </div>
+                    <div class="form-group">
+                        <label for="city">City</label>
+                        <input type="text" id="city" required placeholder="Your city">
+                    </div>
+                    <div class="form-group">
+                        <label for="landmarks">Nearby Landmarks</label>
+                        <input type="text" id="landmarks" placeholder="Hospital, school, mall etc.">
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>🐾 Animal Details</h3>
+                    <div class="form-group">
+                        <label for="animalType">Animal Type</label>
+                        <select id="animalType" required>
+                            <option value="">Select animal type</option>
+                            <option value="dog">Dog</option>
+                            <option value="cat">Cat</option>
+                            <option value="puppy">Puppy</option>
+                            <option value="kitten">Kitten</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="condition">Animal Condition</label>
+                        <select id="condition" required>
+                            <option value="">Select condition</option>
+                            <option value="injured">Injured</option>
+                            <option value="sick">Sick</option>
+                            <option value="healthy">Healthy but stray</option>
+                            <option value="emergency">Emergency situation</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea id="description" rows="4" placeholder="Describe the animal's appearance, behavior, injuries etc."></textarea>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>📱 Contact Information</h3>
+                    <div class="form-group">
+                        <label for="phone">Your Phone Number</label>
+                        <input type="tel" id="phone" required placeholder="+91 12345 67890">
+                    </div>
+                    <div class="form-group">
+                        <label for="name">Your Name</label>
+                        <input type="text" id="name" required placeholder="Full name">
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>📸 Photos (Optional)</h3>
+                    <div class="upload-area" onclick="document.getElementById('photos').click()">
+                        <div class="upload-icon">📷</div>
+                        <p>Click to upload photos of the animal</p>
+                        <input type="file" id="photos" multiple accept="image/*" style="display: none;">
+                    </div>
+                    <div id="photoPreview"></div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="submit-btn">Submit Report</button>
+                    <button type="button" class="cancel-btn" onclick="goBack()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('reportForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const report = {
+                id: Date.now(),
+                location: document.getElementById('location').value,
+                city: document.getElementById('city').value,
+                landmarks: document.getElementById('landmarks').value,
+                animalType: document.getElementById('animalType').value,
+                condition: document.getElementById('condition').value,
+                description: document.getElementById('description').value,
+                phone: document.getElementById('phone').value,
+                name: document.getElementById('name').value,
+                date: new Date().toLocaleString(),
+                status: 'Submitted'
+            };
+
+            // Save to localStorage
+            let reports = JSON.parse(localStorage.getItem('user_reports') || '[]');
+            reports.push(report);
+            localStorage.setItem('user_reports', JSON.stringify(reports));
+
+            alert('Report submitted successfully! NGOs will be notified.');
+            this.reset();
+            document.getElementById('photoPreview').innerHTML = '';
+        });
+
+        document.getElementById('photos').addEventListener('change', function(e) {
+            const preview = document.getElementById('photoPreview');
+            preview.innerHTML = '';
+            
+            for (let file of e.target.files) {
+                const img = document.createElement('img');
+                img.src = URL.createObjectURL(file);
+                img.style.width = '100px';
+                img.style.height = '100px';
+                img.style.objectFit = 'cover';
+                img.style.borderRadius = '8px';
+                img.style.margin = '5px';
+                preview.appendChild(img);
+            }
+        });
+
+        function goBack() {
+            window.location.href = 'user_dashboard.html';
+        }
+    </script>
+</body>
+</html>
