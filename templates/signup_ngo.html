@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NGO Signup | RescueBridge</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/styles/signup_ngo.css" />
+  </head>
+  <body>
+    <div class="signup-container">
+      <a href="index.html" class="back-link">← Back to Home</a>
+
+      <div class="header">
+        <h1 class="page-title">Join as NGO</h1>
+        <p class="page-subtitle">
+          Connect with the community and support animal welfare
+        </p>
+        <span class="user-type-badge">🐾 NGO Registration</span>
+      </div>
+
+      <form class="signup-form" onsubmit="handleNGOSignup(event)">
+        <div class="form-group">
+          <label class="form-label" for="ngo-name">NGO Name</label>
+          <input
+            type="text"
+            id="ngo-name"
+            class="form-input"
+            placeholder="e.g. Animal Care Foundation"
+            required
+          />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group half">
+            <label class="form-label" for="email">Email</label>
+            <input
+              type="email"
+              id="email"
+              class="form-input"
+              placeholder="example@ngo.org"
+              required
+            />
+          </div>
+          <div class="form-group half">
+            <label class="form-label" for="phone">Phone Number</label>
+            <input
+              type="tel"
+              id="phone"
+              class="form-input"
+              placeholder="9876543210"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="address">Address</label>
+          <input
+            type="text"
+            id="address"
+            class="form-input"
+            placeholder="123 Street, City, State"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="registration"
+            >NGO Registration Number</label
+          >
+          <input
+            type="text"
+            id="registration"
+            class="form-input"
+            placeholder="Reg#123456789"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <input
+            type="password"
+            id="password"
+            class="form-input"
+            placeholder="Create a password"
+            required
+          />
+        </div>
+
+        <button type="submit" class="submit-btn">Sign Up</button>
+      </form>
+
+      <div class="login-link">
+        Already have an account? <a href="login.html">Login</a>
+      </div>
+    </div>
+
+    <script>
+      function handleNGOSignup(event) {
+        event.preventDefault();
+        // Validate or save form data here if needed
+        window.location.href = "dashboard_user.html"; // Or dashboard_ngo.html if separate
+      }
+    </script>
+  </body>
+</html>
