@@ -6,7 +6,7 @@
 
 body {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #ff8a65 0%, #ff7043 50%, #ff5722 100%);
+  background: linear-gradient(135deg, #319177 0%, #2d8269 50%, #29735c 100%);
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -41,7 +41,7 @@ body {
   background: linear-gradient(
     45deg,
     transparent 30%,
-    rgba(255, 138, 101, 0.05) 50%,
+    rgba(49, 145, 119, 0.05) 50%,
     transparent 70%
   );
   animation: shimmer 3s infinite;
@@ -88,7 +88,7 @@ body {
 .brand-name {
   font-size: 3.5rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #ff6f00, #ff8f00);
+  background: linear-gradient(135deg, #319177, #2d8269);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -154,25 +154,25 @@ body {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #ff6f00, #ff8f00);
+  background: linear-gradient(135deg, #319177, #2d8269);
   color: white;
-  box-shadow: 0 15px 30px rgba(255, 111, 0, 0.3);
+  box-shadow: 0 15px 30px rgba(49, 145, 119, 0.3);
 }
 
 .btn-primary:hover {
   transform: translateY(-3px);
-  box-shadow: 0 20px 40px rgba(255, 111, 0, 0.4);
+  box-shadow: 0 20px 40px rgba(49, 145, 119, 0.4);
 }
 
 .btn-secondary {
-  background: linear-gradient(135deg, #ff7043, #ff5722);
+  background: linear-gradient(135deg, #2d8269, #29735c);
   color: white;
-  box-shadow: 0 15px 30px rgba(255, 112, 67, 0.3);
+  box-shadow: 0 15px 30px rgba(45, 130, 105, 0.3);
 }
 
 .btn-secondary:hover {
   transform: translateY(-3px);
-  box-shadow: 0 20px 40px rgba(255, 112, 67, 0.4);
+  box-shadow: 0 20px 40px rgba(45, 130, 105, 0.4);
 }
 
 .features {
