@@ -4,14 +4,13 @@ import sqlite3
 app = Flask(__name__)
 app.secret_key = 'your-secret-key'
 
-# ------------------- ROUTES -------------------
-
+# ------------------- HOME -------------------
 @app.route('/')
 def index():
     return render_template('index.html')
 
-# ------------------- LOGIN -------------------
 
+# ------------------- LOGIN -------------------
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -58,8 +57,8 @@ def login():
 
     return render_template('login.html')
 
-# ------------------- SIGNUP ROUTES -------------------
 
+# ------------------- SIGNUP ROUTES -------------------
 @app.route('/signup/user', methods=['GET', 'POST'])
 def signup_user():
     if request.method == 'POST':
@@ -139,8 +138,8 @@ def signup_shopkeeper():
 
     return render_template('signup_shopkeeper.html')
 
-# ------------------- DASHBOARDS -------------------
 
+# ------------------- DASHBOARDS -------------------
 @app.route('/dashboard/user')
 def dashboard_user():
     return render_template('dashboard_user.html')
@@ -154,7 +153,24 @@ def dashboard_shopkeeper():
     return render_template('dashboard_shopkeeper.html')
 
 
-# ------------------- MAIN ENTRY -------------------
+# ------------------- USER SUBPAGES -------------------
+@app.route('/user/report-animal')
+def user_report_animal():
+    return render_template('user_report_animal.html')
 
+@app.route('/user/your-pets')
+def user_your_pets():
+    return render_template('user_Your_pets.html')
+
+@app.route('/user/donate')
+def user_donate():
+    return render_template('user_donate.html')
+
+@app.route('/user/find-vet')
+def user_find_vet():
+    return render_template('user_find_vet.html')
+
+
+# ------------------- RUN APP -------------------
 if __name__ == '__main__':
     app.run(debug=True)
