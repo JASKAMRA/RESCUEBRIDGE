@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medicine Planner</title>
+    <link rel="stylesheet" href="/static/styles/shopkeeper_list_medi.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">MP</div>
+            <h1 class="page-title">Medicine Planner</h1>
+        </div>
+
+        <!-- Add Medicine Form -->
+        <div class="add-medicine-form">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Medicine Name</label>
+                    <input type="text" class="form-input" id="medicineName" placeholder="Enter medicine name">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Quantity (Boxes)</label>
+                    <input type="number" class="form-input" id="medicineQuantity" placeholder="0" min="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Restock Level</label>
+                    <input type="number" class="form-input" id="restockLevel" placeholder="5" min="1">
+                </div>
+                <div class="form-group">
+                    <button class="btn-primary" onclick="addMedicine()">Add Medicine</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Restock Alert -->
+        <div id="restockAlert" class="restock-alert" style="display: none;">
+            <div class="restock-title">⚠ Medicines to Restock</div>
+            <div id="restockList"></div>
+        </div>
+
+        <!-- Medicine List -->
+        <div class="medicine-list">
+            <h2 class="section-title">Medicine Inventory</h2>
+            <div id="medicineContainer">
+                <div class="empty-state">
+                    No medicines added yet. Add your first medicine above!
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let medicines = [];
+
+        function addMedicine() {
+            const name = document.getElementById('medicineName').value.trim();
+            const quantity = parseInt(document.getElementById('medicineQuantity').value) || 0;
+            const restockLevel = parseInt(document.getElementById('restockLevel').value) || 5;
+
+            if (!name) {
+                alert('Please enter a medicine name');
+                return;
+            }
+
+            // Check if medicine already exists
+            const existingMedicine = medicines.find(med => med.name.toLowerCase() === name.toLowerCase());
+            if (existingMedicine) {
+                alert('This medicine already exists in your inventory');
+                return;
+            }
+
+            const medicine = {
+                id: Date.now(),
+                name: name,
+                quantity: quantity,
+                restockLevel: restockLevel
+            };
+
+            medicines.push(medicine);
+            clearForm();
+            renderMedicines();
+            updateRestockAlert();
+        }
+
+        function clearForm() {
+            document.getElementById('medicineName').value = '';
+            document.getElementById('medicineQuantity').value = '';
+            document.getElementById('restockLevel').value = '';
+        }
+
+        function deleteMedicine(id) {
+            if (confirm('Are you sure you want to delete this medicine?')) {
+                medicines = medicines.filter(med => med.id !== id);
+                renderMedicines();
+                updateRestockAlert();
+            }
+        }
+
+        function adjustQuantity(id, change) {
+            const medicine = medicines.find(med => med.id === id);
+            if (medicine) {
+                medicine.quantity = Math.max(0, medicine.quantity + change);
+                renderMedicines();
+                updateRestockAlert();
+            }
+        }
+
+        function getStatus(medicine) {
+            if (medicine.quantity === 0) {
+                return { class: 'status-restock', text: 'Out of Stock' };
+            } else if (medicine.quantity <= medicine.restockLevel) {
+                return { class: 'status-low', text: 'Low Stock' };
+            } else {
+                return { class: 'status-good', text: 'In Stock' };
+            }
+        }
+
+        function renderMedicines() {
+            const container = document.getElementById('medicineContainer');
+            
+            if (medicines.length === 0) {
+                container.innerHTML = '<div class="empty-state">No medicines added yet. Add your first medicine above!</div>';
+                return;
+            }
+
+            container.innerHTML = medicines.map(medicine => {
+                const status = getStatus(medicine);
+                return `
+                    <div class="medicine-item">
+                        <div class="medicine-name">${medicine.name}</div>
+                        <div class="medicine-quantity">${medicine.quantity} boxes</div>
+                        <div class="medicine-status ${status.class}">${status.text}</div>
+                        <div class="medicine-actions">
+                            <button class="btn-small btn-add" onclick="adjustQuantity(${medicine.id}, 1)">+</button>
+                            <button class="btn-small btn-remove" onclick="adjustQuantity(${medicine.id}, -1)">-</button>
+                            <button class="btn-small btn-delete" onclick="deleteMedicine(${medicine.id})">Delete</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateRestockAlert() {
+            const restockMedicines = medicines.filter(med => med.quantity <= med.restockLevel);
+            const alertDiv = document.getElementById('restockAlert');
+            const listDiv = document.getElementById('restockList');
+
+            if (restockMedicines.length === 0) {
+                alertDiv.style.display = 'none';
+                return;
+            }
+
+            alertDiv.style.display = 'block';
+            listDiv.innerHTML = restockMedicines.map(medicine => `
+                <div class="restock-item">
+                    <span>${medicine.name}</span>
+                    <span>${medicine.quantity} boxes left</span>
+                </div>
+            `).join('');
+        }
+
+        // Add some sample data for demonstration
+        medicines = [
+            { id: 1, name: "Paracetamol", quantity: 8, restockLevel: 5 },
+            { id: 2, name: "Ibuprofen", quantity: 3, restockLevel: 5 },
+            { id: 3, name: "Vitamin C", quantity: 0, restockLevel: 3 }
+        ];
+
+        // Initial render
+        renderMedicines();
+        updateRestockAlert();
+    </script>
+</body>
+</html>
