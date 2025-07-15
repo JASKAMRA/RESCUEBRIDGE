@@ -13,7 +13,7 @@
   <body>
     <div class="signup-container">
       <div class="header">
-        <a href="index.html" class="back-button">← Back to Home</a>
+        <a href="{{ url_for('index') }}" class="back-button">← Back to Home</a>
         <h1 class="page-title">Shopkeeper Signup</h1>
         <p class="page-subtitle">Join RescueBridge as a Resource Partner</p>
       </div>
@@ -88,15 +88,16 @@
       </form>
 
       <div class="login-link">
-        Already have an account? <a href="login.html">Login</a>
+        Already have an account? <a href="{{ url_for('login') }}">Login</a>
       </div>
     </div>
 
     <script>
       function handleSignup(event) {
         event.preventDefault();
-        // You can process form values here or send them to a backend
-        window.location.href = "dashboard_shopkeeper.html";
+        // Redirect to user/shopkeeper dashboard (adjust if needed)
+        window.location.href = "{{ url_for('dashboard_user') }}";
+        // OR use 'dashboard_shopkeeper' if you define that in Flask
       }
     </script>
   </body>
