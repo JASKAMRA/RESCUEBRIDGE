@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RescueBridge - Connecting Hearts, Saving Lives</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/styles/index.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="hero-section">
+        <div class="logo-container">
+          <div class="logo">
+            <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color: #ff6f00" />
+                  <stop offset="100%" style="stop-color: #ff8f00" />
+                </linearGradient>
+                <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color: #ff5722" />
+                  <stop offset="100%" style="stop-color: #ff7043" />
+                </linearGradient>
+              </defs>
+
+              <!-- Circular Background -->
+              <circle
+                cx="100"
+                cy="100"
+                r="95"
+                fill="url(#grad1)"
+                opacity="0.1"
+              />
+
+              <!-- Bridge Icon -->
+              <g transform="translate(100, 100)">
+                <!-- Bridge Towers -->
+                <rect
+                  x="-40"
+                  y="-30"
+                  width="6"
+                  height="40"
+                  fill="url(#grad1)"
+                  rx="3"
+                />
+                <rect
+                  x="34"
+                  y="-30"
+                  width="6"
+                  height="40"
+                  fill="url(#grad1)"
+                  rx="3"
+                />
+
+                <!-- Bridge Deck -->
+                <rect
+                  x="-60"
+                  y="5"
+                  width="120"
+                  height="8"
+                  fill="url(#grad1)"
+                  rx="4"
+                />
+
+                <!-- Main Cable -->
+                <path
+                  d="M-60 10 Q-37 -25 0 -35 Q37 -25 60 10"
+                  fill="none"
+                  stroke="url(#grad1)"
+                  stroke-width="4"
+                />
+
+                <!-- Support Cables -->
+                <line
+                  x1="-50"
+                  y1="10"
+                  x2="-45"
+                  y2="-15"
+                  stroke="url(#grad1)"
+                  stroke-width="2"
+                />
+                <line
+                  x1="-30"
+                  y1="10"
+                  x2="-25"
+                  y2="-25"
+                  stroke="url(#grad1)"
+                  stroke-width="2"
+                />
+                <line
+                  x1="-10"
+                  y1="10"
+                  x2="-8"
+                  y2="-30"
+                  stroke="url(#grad1)"
+                  stroke-width="2"
+                />
+                <line
+                  x1="10"
+                  y1="10"
+                  x2="8"
+                  y2="-30"
+                  stroke="url(#grad1)"
+                  stroke-width="2"
+                />
+                <line
+                  x1="30"
+                  y1="10"
+                  x2="25"
+                  y2="-25"
+                  stroke="url(#grad1)"
+                  stroke-width="2"
+                />
+                <line
+                  x1="50"
+                  y1="10"
+                  x2="45"
+                  y2="-15"
+                  stroke="url(#grad1)"
+                  stroke-width="2"
+                />
+              </g>
+
+              <!-- Paw Print -->
+              <g transform="translate(100, 140)" fill="url(#grad2)">
+                <!-- Main pad -->
+                <ellipse cx="0" cy="0" rx="15" ry="18" />
+                <!-- Toe pads -->
+                <circle cx="-12" cy="-15" r="6" />
+                <circle cx="0" cy="-20" r="6" />
+                <circle cx="12" cy="-15" r="6" />
+                <circle cx="18" cy="-8" r="6" />
+              </g>
+
+              <!-- Decorative elements -->
+              <circle cx="60" cy="60" r="3" fill="url(#grad1)" opacity="0.3" />
+              <circle cx="140" cy="60" r="3" fill="url(#grad1)" opacity="0.3" />
+              <circle cx="100" cy="40" r="2" fill="url(#grad2)" opacity="0.4" />
+            </svg>
+          </div>
+          <h1 class="brand-name">RescueBridge</h1>
+          <p class="tagline">
+            Connecting NGOs with Communities for Animal Welfare
+          </p>
+        </div>
+
+        <div class="cta-buttons">
+          <button id="getStartedBtn" class="btn btn-primary">
+            <span>🚀</span>
+            Get Started
+          </button>
+
+          <a href="login.html" class="btn btn-secondary">
+            <span>🔑</span>
+            Login
+          </a>
+        </div>
+
+        <div class="features">
+          <div class="feature-card">
+            <div class="feature-icon">📋</div>
+            <h3 class="feature-title">Report Animal Issues</h3>
+            <p class="feature-desc">
+              Easily report injured, sick, or distressed animals to connect them
+              with immediate care and rescue services.
+            </p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🏥</div>
+            <h3 class="feature-title">Health Monitoring</h3>
+            <p class="feature-desc">
+              Track and report health-related problems in animals to ensure they
+              receive proper medical attention.
+            </p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🤝</div>
+            <h3 class="feature-title">NGO Marketplace</h3>
+            <p class="feature-desc">
+              Connecting small-scale NGOs with communities to create a network
+              of animal welfare support.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Registration Modal -->
+    <div id="registrationModal" style="display: none">
+      <div
+        style="
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-color: rgba(0, 0, 0, 0.6);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 9999;
+        "
+      >
+        <div
+          style="
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 90%;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+          "
+        >
+          <h2 style="margin-bottom: 20px">Register As</h2>
+          <div style="display: flex; gap: 15px; flex-direction: column">
+            <button
+              onclick="window.location.href='signup_user.html'"
+              class="btn btn-primary"
+            >
+              🙋 Individual
+            </button>
+            <button
+              onclick="window.location.href='signup_shopkeeper.html'"
+              class="btn btn-secondary"
+            >
+              🏪 Shopkeeper
+            </button>
+            <button
+              onclick="window.location.href='signup_ngo.html'"
+              class="btn btn-secondary"
+            >
+              🐾 NGO
+            </button>
+          </div>
+          <button
+            onclick="closeModal()"
+            style="
+              margin-top: 20px;
+              background: none;
+              border: none;
+              color: #ff5722;
+              font-weight: bold;
+              cursor: pointer;
+            "
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+    <script>
+      const modal = document.getElementById("registrationModal");
+      const getStartedBtn = document.getElementById("getStartedBtn");
+
+      getStartedBtn.onclick = function () {
+        modal.style.display = "block";
+      };
+
+      function closeModal() {
+        modal.style.display = "none";
+      }
+
+      // Optional: Close modal on outside click
+      window.onclick = function (event) {
+        if (event.target === modal.firstElementChild) {
+          closeModal();
+        }
+      };
+    </script>
+  </body>
+</html>

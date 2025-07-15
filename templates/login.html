@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login | RescueBridge</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/styles/login.css" />
+  </head>
+  <body>
+    <div class="signup-container">
+      <div class="header">
+        <h1 class="page-title">Login</h1>
+        <p class="page-subtitle">Welcome back to RescueBridge</p>
+      </div>
+      <form onsubmit="handleLogin(event)" class="signup-form">
+        <div class="form-group">
+          <label class="form-label" for="username">Username</label>
+          <input
+            type="text"
+            id="username"
+            class="form-input"
+            placeholder="Enter your username"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <input
+            type="password"
+            id="password"
+            class="form-input"
+            placeholder="Enter your password"
+            required
+          />
+        </div>
+
+        <button type="submit" class="submit-btn">Login</button>
+      </form>
+
+      <div class="login-link">
+        Don’t have an account? <a href="signup_user.html">Sign Up</a>
+      </div>
+    </div>
+
+    <script>
+      function handleLogin(event) {
+        event.preventDefault();
+        // You can add validation or authentication here
+        // For now, it just redirects to the user dashboard
+        window.location.href = "dashboard_user.html";
+      }
+    </script>
+  </body>
+</html>
