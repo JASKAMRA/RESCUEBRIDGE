@@ -4,6 +4,7 @@ import sqlite3
 app = Flask(__name__)
 app.secret_key = 'your-secret-key'
 
+
 # ------------------- HOME -------------------
 @app.route('/')
 def index():
@@ -144,9 +145,11 @@ def signup_shopkeeper():
 def dashboard_user():
     return render_template('dashboard_user.html')
 
+
 @app.route('/dashboard/ngo')
 def dashboard_ngo():
     return render_template('dashboard_ngo.html')
+
 
 @app.route('/dashboard/shopkeeper')
 def dashboard_shopkeeper():
@@ -158,17 +161,40 @@ def dashboard_shopkeeper():
 def user_report_animal():
     return render_template('user_report_animal.html')
 
+
 @app.route('/user/your-pets')
 def user_your_pets():
     return render_template('user_Your_pets.html')
+
 
 @app.route('/user/donate')
 def user_donate():
     return render_template('user_donate.html')
 
+
 @app.route('/user/find-vet')
 def user_find_vet():
     return render_template('user_find_vet.html')
+
+
+# ------------------- NGO SUBPAGES -------------------
+@app.route('/ngo/donation-records')
+def ngo_donation():
+    return render_template('ngo_donation.html')
+
+
+@app.route('/ngo/marketplace')
+def ngo_marketplace():
+    return render_template('ngo_marketplace.html')
+
+
+@app.route('/ngo/medicine-planner')
+def adherence_planner():
+    return render_template('adherence_planner.html')
+@app.route('/ngo/my-purchases')
+def ngo_my_purchases():
+    return render_template('my_purchases.html')  # ✅ corrected filename
+
 
 
 # ------------------- RUN APP -------------------
