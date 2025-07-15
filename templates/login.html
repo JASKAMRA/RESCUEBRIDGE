@@ -20,15 +20,25 @@
         <p class="page-subtitle">Welcome back to RescueBridge</p>
       </div>
 
+      <!-- Flash message (if any) -->
+      {% with messages = get_flashed_messages() %} {% if messages %}
+      <div
+        class="flash-message"
+        style="color: red; text-align: center; margin-bottom: 10px"
+      >
+        {{ messages[0] }}
+      </div>
+      {% endif %} {% endwith %}
+
       <form method="POST" action="{{ url_for('login') }}" class="signup-form">
         <div class="form-group">
-          <label class="form-label" for="username">Username</label>
+          <label class="form-label" for="email">Email</label>
           <input
-            type="text"
-            id="username"
-            name="username"
+            type="email"
+            id="email"
+            name="email"
             class="form-input"
-            placeholder="Enter your username"
+            placeholder="Enter your email address"
             required
           />
         </div>
@@ -45,13 +55,41 @@
           />
         </div>
 
+        <div class="form-group">
+          <label class="form-label" for="role">Role</label>
+          <select id="role" name="role" class="form-input" required>
+            <option value="">Select Role</option>
+            <option value="user">Individual</option>
+            <option value="ngo">NGO</option>
+            <option value="shopkeeper">Shopkeeper</option>
+          </select>
+        </div>
+
         <button type="submit" class="submit-btn">Login</button>
       </form>
 
       <div class="login-link">
         Don’t have an account?
-        <a href="{{ url_for('signup_user') }}">Sign Up</a>
+        <a href="#" onclick="redirectToSignup()">Sign Up</a>
       </div>
     </div>
+
+    <script>
+      function redirectToSignup() {
+        const role = document.getElementById("role").value;
+        if (!role) {
+          alert("Please select a role before signing up.");
+          return;
+        }
+
+        if (role === "user") {
+          window.location.href = "{{ url_for('signup_user') }}";
+        } else if (role === "ngo") {
+          window.location.href = "{{ url_for('signup_ngo') }}";
+        } else if (role === "shopkeeper") {
+          window.location.href = "{{ url_for('signup_shopkeeper') }}";
+        }
+      }
+    </script>
   </body>
 </html>

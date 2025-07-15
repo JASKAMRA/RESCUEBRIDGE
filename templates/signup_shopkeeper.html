@@ -17,12 +17,19 @@
         <h1 class="page-title">Shopkeeper Signup</h1>
         <p class="page-subtitle">Join RescueBridge as a Resource Partner</p>
       </div>
-      <form onsubmit="handleSignup(event)">
+
+      <!-- Show any error/flash messages -->
+      {% with messages = get_flashed_messages() %} {% if messages %}
+      <div style="color: red; text-align: center">{{ messages[0] }}</div>
+      {% endif %} {% endwith %}
+
+      <form method="POST" action="{{ url_for('signup_shopkeeper') }}">
         <div class="form-group">
           <label class="form-label" for="shopName">Shop Name</label>
           <input
             type="text"
             id="shopName"
+            name="shop_name"
             class="form-input"
             placeholder="Enter your shop name"
             required
@@ -34,6 +41,7 @@
           <input
             type="text"
             id="ownerName"
+            name="owner_name"
             class="form-input"
             placeholder="Enter owner's name"
             required
@@ -45,6 +53,7 @@
           <input
             type="email"
             id="email"
+            name="email"
             class="form-input"
             placeholder="Enter email address"
             required
@@ -56,6 +65,7 @@
           <input
             type="tel"
             id="phone"
+            name="phone"
             class="form-input"
             placeholder="Enter contact number"
             required
@@ -67,6 +77,7 @@
           <input
             type="text"
             id="address"
+            name="address"
             class="form-input"
             placeholder="Enter shop address"
             required
@@ -78,6 +89,7 @@
           <input
             type="password"
             id="password"
+            name="password"
             class="form-input"
             placeholder="Create a password"
             required
@@ -91,14 +103,5 @@
         Already have an account? <a href="{{ url_for('login') }}">Login</a>
       </div>
     </div>
-
-    <script>
-      function handleSignup(event) {
-        event.preventDefault();
-        // Redirect to user/shopkeeper dashboard (adjust if needed)
-        window.location.href = "{{ url_for('dashboard_user') }}";
-        // OR use 'dashboard_shopkeeper' if you define that in Flask
-      }
-    </script>
   </body>
 </html>

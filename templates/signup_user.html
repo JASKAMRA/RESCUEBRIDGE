@@ -20,8 +20,6 @@
       </a>
 
       <div class="header">
-        <!-- SVG logo remains unchanged -->
-        <!-- ... existing SVG ... -->
         <h1 class="page-title">Join RescueBridge</h1>
         <p class="page-subtitle">Create your account to help animals in need</p>
         <div class="user-type-badge"><span>👤</span> Individual Account</div>
@@ -37,7 +35,7 @@
           <input
             type="text"
             id="fullName"
-            name="fullName"
+            name="full_name"
             class="form-input"
             placeholder="Enter your full name"
             required
@@ -114,7 +112,7 @@
             <input
               type="password"
               id="confirmPassword"
-              name="confirmPassword"
+              name="confirm_password"
               class="form-input"
               placeholder="Confirm your password"
               required
@@ -168,7 +166,6 @@
       </div>
     </div>
 
-    <!-- JavaScript below remains unchanged except final redirect line -->
     <script>
       document.getElementById("phone").addEventListener("input", function (e) {
         let value = e.target.value.replace(/\D/g, "");
@@ -179,31 +176,6 @@
           e.target.value = value;
         }
       });
-
-      document
-        .querySelector(".signup-form")
-        .addEventListener("submit", function (e) {
-          // For demo: client-side validation & feedback
-          // Remove e.preventDefault() in production to allow real submission
-          e.preventDefault();
-
-          const formData = new FormData(this);
-          const data = Object.fromEntries(formData);
-
-          if (!data.fullName.trim())
-            return alert("Please enter your full name");
-          if (!data.email.includes("@"))
-            return alert("Please enter a valid email");
-          if (data.phone.replace(/\D/g, "").length < 10)
-            return alert("Invalid phone");
-          if (data.pincode.length !== 6) return alert("Invalid pincode");
-          if (data.password.length < 8) return alert("Password too short");
-          if (data.password !== data.confirmPassword)
-            return alert("Passwords do not match");
-
-          alert("Account created successfully! Welcome to RescueBridge!");
-          window.location.href = "{{ url_for('dashboard_user') }}";
-        });
 
       document
         .getElementById("fullName")

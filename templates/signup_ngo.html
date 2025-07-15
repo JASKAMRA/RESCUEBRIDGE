@@ -22,12 +22,24 @@
         <span class="user-type-badge">🐾 NGO Registration</span>
       </div>
 
-      <form class="signup-form" onsubmit="handleNGOSignup(event)">
+      <!-- Flash error if any -->
+      {% with messages = get_flashed_messages() %} {% if messages %}
+      <div style="color: red; text-align: center; margin-bottom: 10px">
+        {{ messages[0] }}
+      </div>
+      {% endif %} {% endwith %}
+
+      <form
+        class="signup-form"
+        method="POST"
+        action="{{ url_for('signup_ngo') }}"
+      >
         <div class="form-group">
-          <label class="form-label" for="ngo-name">NGO Name</label>
+          <label class="form-label" for="ngo_name">NGO Name</label>
           <input
             type="text"
-            id="ngo-name"
+            id="ngo_name"
+            name="ngo_name"
             class="form-input"
             placeholder="e.g. Animal Care Foundation"
             required
@@ -40,6 +52,7 @@
             <input
               type="email"
               id="email"
+              name="email"
               class="form-input"
               placeholder="example@ngo.org"
               required
@@ -50,6 +63,7 @@
             <input
               type="tel"
               id="phone"
+              name="phone"
               class="form-input"
               placeholder="9876543210"
               required
@@ -62,6 +76,7 @@
           <input
             type="text"
             id="address"
+            name="address"
             class="form-input"
             placeholder="123 Street, City, State"
             required
@@ -69,12 +84,13 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="registration"
+          <label class="form-label" for="registration_no"
             >NGO Registration Number</label
           >
           <input
             type="text"
-            id="registration"
+            id="registration_no"
+            name="registration_no"
             class="form-input"
             placeholder="Reg#123456789"
             required
@@ -86,6 +102,7 @@
           <input
             type="password"
             id="password"
+            name="password"
             class="form-input"
             placeholder="Create a password"
             required
@@ -100,13 +117,5 @@
         <a href="{{ url_for('login') }}">Login</a>
       </div>
     </div>
-
-    <script>
-      function handleNGOSignup(event) {
-        event.preventDefault();
-        // Ideally you'd send data via fetch or a proper form POST
-        window.location.href = "{{ url_for('dashboard_user') }}";
-      }
-    </script>
   </body>
 </html>
