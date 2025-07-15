@@ -154,7 +154,7 @@
             Get Started
           </button>
 
-          <a href="login.html" class="btn btn-secondary">
+          <a href="{{ url_for('login') }}" class="btn btn-secondary">
             <span>🔑</span>
             Login
           </a>
@@ -217,19 +217,19 @@
           <h2 style="margin-bottom: 20px">Register As</h2>
           <div style="display: flex; gap: 15px; flex-direction: column">
             <button
-              onclick="window.location.href='signup_user.html'"
+              onclick="window.location.href='{{ url_for('signup_user') }}'"
               class="btn btn-primary"
             >
               🙋 Individual
             </button>
             <button
-              onclick="window.location.href='signup_shopkeeper.html'"
+              onclick="window.location.href='{{ url_for('signup_shopkeeper') }}'"
               class="btn btn-secondary"
             >
               🏪 Shopkeeper
             </button>
             <button
-              onclick="window.location.href='signup_ngo.html'"
+              onclick="window.location.href='{{ url_for('signup_ngo') }}'"
               class="btn btn-secondary"
             >
               🐾 NGO

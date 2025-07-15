@@ -2,8 +2,6 @@ from flask import Flask, render_template, request, redirect, url_for
 
 app = Flask(__name__)
 
-# ------------------- ROUTES -------------------
-
 # Home Page
 @app.route('/')
 def index():
@@ -14,7 +12,7 @@ def index():
 def login():
     return render_template('login.html')
 
-# Signup Pages (for different user roles)
+# Signup Pages
 @app.route('/signup/user')
 def signup_user():
     return render_template('signup_user.html')
@@ -27,23 +25,19 @@ def signup_shopkeeper():
 def signup_ngo():
     return render_template('signup_ngo.html')
 
-# Dashboard Page (example: user)
+# Dashboard example for user (can be separate for each role)
 @app.route('/dashboard/user')
 def dashboard_user():
     return render_template('dashboard_user.html')
 
-# ------------------- FORM HANDLERS -------------------
-
-# Example form handler (to be customized later)
+# You can add POST handling or DB integration later
+# Example form handling (stub)
 @app.route('/submit_signup', methods=['POST'])
 def submit_signup():
-    # Access form fields if needed:
-    # username = request.form.get('username')
-    # password = request.form.get('password')
-    # Do DB insertion or validation here later
+    # You can access form data like:
+    # name = request.form['name']
     return redirect(url_for('dashboard_user'))
 
-# ------------------- MAIN ENTRY -------------------
-
+# Run the server
 if __name__ == '__main__':
     app.run(debug=True)

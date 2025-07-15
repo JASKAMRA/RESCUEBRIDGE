@@ -12,7 +12,7 @@
   </head>
   <body>
     <div class="signup-container">
-      <a href="index.html" class="back-link">← Back to Home</a>
+      <a href="{{ url_for('index') }}" class="back-link">← Back to Home</a>
 
       <div class="header">
         <h1 class="page-title">Join as NGO</h1>
@@ -96,15 +96,16 @@
       </form>
 
       <div class="login-link">
-        Already have an account? <a href="login.html">Login</a>
+        Already have an account?
+        <a href="{{ url_for('login') }}">Login</a>
       </div>
     </div>
 
     <script>
       function handleNGOSignup(event) {
         event.preventDefault();
-        // Validate or save form data here if needed
-        window.location.href = "dashboard_user.html"; // Or dashboard_ngo.html if separate
+        // Ideally you'd send data via fetch or a proper form POST
+        window.location.href = "{{ url_for('dashboard_user') }}";
       }
     </script>
   </body>
