@@ -191,10 +191,21 @@ def ngo_marketplace():
 @app.route('/ngo/medicine-planner')
 def adherence_planner():
     return render_template('adherence_planner.html')
-@app.route('/ngo/my-purchases')
+@app.route('/ngo/my_purchases')  # ✅ underscore hai, hyphen nahi
 def ngo_my_purchases():
-    return render_template('my_purchases.html')  # ✅ corrected filename
+    return render_template('my_purchases.html')  # ✅ .he
 
+@app.route('/ngo/dailydoses')
+def dailydoses():
+    return render_template('dailydoses.html')
+
+@app.route('/shopkeeper/medicine-planner')
+def medicine_planner():
+    return render_template('shopkeeper_list_medication.html')
+
+@app.route('/shopkeeper/request-planner')
+def request_planner():
+    return render_template('shopkeeper_list_requests.html')
 
 
 # ------------------- RUN APP -------------------
