@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donate</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="user_styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💝 Donate</h1>
+            <p>Support animal welfare and help save lives</p>
+            <a href="user_dashboard.html" class="back-btn">← Back to Dashboard</a>
+        </div>
+
+        <div class="donation-stats">
+            <div class="stat-item">
+                <div class="stat-number">2,450</div>
+                <div class="stat-label">Animals Helped</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">₹12,50,000</div>
+                <div class="stat-label">Total Donations</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">850</div>
+                <div class="stat-label">Active Donors</div>
+            </div>
+        </div>
+
+        <div class="donation-options">
+            <h2>Choose Donation Amount</h2>
+            <div class="amount-grid">
+                <button class="amount-btn" onclick="selectAmount(500)">₹500</button>
+                <button class="amount-btn" onclick="selectAmount(1000)">₹1,000</button>
+                <button class="amount-btn" onclick="selectAmount(2000)">₹2,000</button>
+                <button class="amount-btn" onclick="selectAmount(5000)">₹5,000</button>
+            </div>
+            <div class="custom-amount">
+                <input type="number" id="customAmount" placeholder="Enter custom amount" min="100">
+                <button onclick="selectCustomAmount()">Set Amount</button>
+            </div>
+        </div>
+
+        <div class="donation-purposes">
+            <h2>Where Your Money Goes</h2>
+            <div class="purpose-grid">
+                <div class="purpose-card">
+                    <div class="purpose-icon">🍖</div>
+                    <h3>Food & Nutrition</h3>
+                    <p>Provide daily meals for stray animals</p>
+                    <button class="donate-purpose-btn" onclick="donateForPurpose('food')">Donate for Food</button>
+                </div>
+                <div class="purpose-card">
+                    <div class="purpose-icon">🏥</div>
+                    <h3>Medical Care</h3>
+                    <p>Emergency treatment and vaccinations</p>
+                    <button class="donate-purpose-btn" onclick="donateForPurpose('medical')">Donate for Medical</button>
+                </div>
+                <div class="purpose-card">
+                    <div class="purpose-icon">🏠</div>
+                    <h3>Shelter</h3>
+                    <p>Safe housing and rehabilitation</p>
+                    <button class="donate-purpose-btn" onclick="donateForPurpose('shelter')">Donate for Shelter</button>
+                </div>
+                <div class="purpose-card">
+                    <div class="purpose-icon">🎯</div>
+                    <h3>General Fund</h3>
+                    <p>Support all animal welfare activities</p>
+                    <button class="donate-purpose-btn" onclick="donateForPurpose('general')">Donate General</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Donation Form Modal -->
+        <div id="donationModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeDonationModal()">&times;</span>
+                <h2>Complete Your Donation</h2>
+                <div class="donation-summary">
+                    <div class="amount-display">₹<span id="selectedAmount">0</span></div>
+                    <div class="purpose-display">For: <span id="selectedPurpose">General Fund</span></div>
+                </div>
+                
+                <form id="donationForm">
+                    <div class="form-group">
+                        <label for="donorName">Full Name</label>
+                        <input type="text" id="donorName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="donorEmail">Email</label>
+                        <input type="email" id="donorEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="donorPhone">Phone Number</label>
+                        <input type="tel" id="donorPhone" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="paymentMethod">Payment Method</label>
+                        <select id="paymentMethod" required>
+                            <option value="">Select payment method</option>
+                            <option value="upi">UPI</option>
+                            <option value="card">Credit/Debit Card</option>
+                            <option value="netbanking">Net Banking</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="anonymous"> Make this donation anonymous
+                        </label>
+                    </div>
+                    <button type="submit" class="submit-btn">Proceed to Payment</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedAmount = 0;
+        let selectedPurpose = 'general';
+
+        function selectAmount(amount) {
+            selectedAmount = amount;
+            document.querySelectorAll('.amount-btn').forEach(btn => btn.classList.remove('selected'));
+            event.target.classList.add('selected');
+            document.getElementById('customAmount').value = '';
+        }
+
+        function selectCustomAmount() {
+            const customAmount = document.getElementById('customAmount').value;
+            if (customAmount && customAmount >= 100) {
+                selectedAmount = parseInt(customAmount);
+                document.querySelectorAll('.amount-btn').forEach(btn => btn.classList.remove('selected'));
+            } else {
+                alert('Minimum donation amount is ₹100');
+            }
+        }
+
+        function donateForPurpose(purpose) {
+            if (selectedAmount === 0) {
+                alert('Please select an amount first');
+                return;
+            }
+            
+            selectedPurpose = purpose;
+            document.getElementById('selectedAmount').textContent = selectedAmount;
+            document.getElementById('selectedPurpose').textContent = getPurposeName(purpose);
+            document.getElementById('donationModal').style.display = 'block';
+        }
+
+        function getPurposeName(purpose) {
+            const purposes = {
+                food: 'Food & Nutrition',
+                medical: 'Medical Care',
+                shelter: 'Shelter',
+                general: 'General Fund'
+            };
+            return purposes[purpose] || 'General Fund';
+        }
+
+        function closeDonationModal() {
+            document.getElementById('donationModal').style.display = 'none';
+            document.getElementById('donationForm').reset();
+        }
+
+        document.getElementById('donationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const donation = {
+                id: Date.now(),
+                amount: selectedAmount,
+                purpose: selectedPurpose,
+                name: document.getElementById('donorName').value,
+                email: document.getElementById('donorEmail').value,
+                phone: document.getElementById('donorPhone').value,
+                paymentMethod: document.getElementById('paymentMethod').value,
+                anonymous: document.getElementById('anonymous').checked,
+                date: new Date().toLocaleString(),
+                status: 'Completed'
+            };
+
+            // Save to localStorage
+            let donations = JSON.parse(localStorage.getItem('user_donations') || '[]');
+            donations.push(donation);
+            localStorage.setItem('user_donations', JSON.stringify(donations));
+
+            alert('Thank you! Your donation has been processed successfully.');
+            closeDonationModal();
+            
+            // Reset selections
+            selectedAmount = 0;
+            selectedPurpose = 'general';
+            document.querySelectorAll('.amount-btn').forEach(btn => btn.classList.remove('selected'));
+            document.getElementById('customAmount').value = '';
+        });
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('donationModal');
+            if (event.target === modal) {
+                closeDonationModal();
+            }
+        }
+    </script>
+</body>
+</html>

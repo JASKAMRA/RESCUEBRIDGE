@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Pets</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="user_styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🐾 Your Pets</h1>
+            <p>Manage your registered pets and their information</p>
+            <a href="user_dashboard.html" class="back-btn">← Back to Dashboard</a>
+        </div>
+
+        <div class="action-bar">
+            <button class="add-btn" onclick="openAddModal()">+ Add New Pet</button>
+        </div>
+
+        <div class="pets-grid" id="petsGrid">
+            <!-- Pets will be loaded here -->
+        </div>
+
+        <!-- Add Pet Modal -->
+        <div id="addModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeAddModal()">&times;</span>
+                <h2>Add New Pet</h2>
+                <form id="addPetForm">
+                    <div class="form-group">
+                        <label for="petName">Pet Name</label>
+                        <input type="text" id="petName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="petType">Type</label>
+                        <select id="petType" required>
+                            <option value="">Select type</option>
+                            <option value="dog">Dog</option>
+                            <option value="cat">Cat</option>
+                            <option value="bird">Bird</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="breed">Breed</label>
+                        <input type="text" id="breed" placeholder="e.g., Golden Retriever">
+                    </div>
+                    <div class="form-group">
+                        <label for="age">Age</label>
+                        <input type="text" id="age" placeholder="e.g., 2 years">
+                    </div>
+                    <div class="form-group">
+                        <label for="color">Color</label>
+                        <input type="text" id="color" placeholder="e.g., Brown and white">
+                    </div>
+                    <div class="form-group">
+                        <label for="vetInfo">Veterinarian</label>
+                        <input type="text" id="vetInfo" placeholder="Vet name or clinic">
+                    </div>
+                    <button type="submit" class="submit-btn">Add Pet</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let pets = [
+            {
+                id: 1,
+                name: "Buddy",
+                type: "dog",
+                breed: "Golden Retriever",
+                age: "3 years",
+                color: "Golden",
+                vet: "City Pet Clinic",
+                lastVet: "2024-01-10"
+            },
+            {
+                id: 2,
+                name: "Whiskers",
+                type: "cat",
+                breed: "Persian",
+                age: "2 years",
+                color: "White",
+                vet: "Animal Care Center",
+                lastVet: "2024-01-05"
+            }
+        ];
+
+        function loadPets() {
+            const savedPets = localStorage.getItem('user_pets');
+            if (savedPets) {
+                pets = JSON.parse(savedPets);
+            }
+        }
+
+        function savePets() {
+            localStorage.setItem('user_pets', JSON.stringify(pets));
+        }
+
+        function renderPets() {
+            const grid = document.getElementById('petsGrid');
+            
+            if (pets.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🐾</div>
+                        <h3>No pets registered yet</h3>
+                        <p>Add your first pet to get started!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = pets.map(pet => `
+                <div class="pet-card">
+                    <div class="pet-icon">${getPetIcon(pet.type)}</div>
+                    <div class="pet-info">
+                        <h3>${pet.name}</h3>
+                        <p class="pet-breed">${pet.breed}</p>
+                        <div class="pet-details">
+                            <span><strong>Age:</strong> ${pet.age}</span>
+                            <span><strong>Color:</strong> ${pet.color}</span>
+                            <span><strong>Vet:</strong> ${pet.vet}</span>
+                        </div>
+                    </div>
+                    <div class="pet-actions">
+                        <button class="edit-btn" onclick="editPet(${pet.id})">Edit</button>
+                        <button class="delete-btn" onclick="deletePet(${pet.id})">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getPetIcon(type) {
+            const icons = {
+                dog: '🐕',
+                cat: '🐱',
+                bird: '🐦',
+                other: '🐾'
+            };
+            return icons[type] || '🐾';
+        }
+
+        function openAddModal() {
+            document.getElementById('addModal').style.display = 'block';
+        }
+
+        function closeAddModal() {
+            document.getElementById('addModal').style.display = 'none';
+            document.getElementById('addPetForm').reset();
+        }
+
+        function deletePet(id) {
+            if (confirm('Are you sure you want to remove this pet?')) {
+                pets = pets.filter(pet => pet.id !== id);
+                savePets();
+                renderPets();
+            }
+        }
+
+        function editPet(id) {
+            alert('Edit functionality - would open edit modal in full app');
+        }
+
+        document.getElementById('addPetForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const newPet = {
+                id: Date.now(),
+                name: document.getElementById('petName').value,
+                type: document.getElementById('petType').value,
+                breed: document.getElementById('breed').value,
+                age: document.getElementById('age').value,
+                color: document.getElementById('color').value,
+                vet: document.getElementById('vetInfo').value,
+                lastVet: new Date().toISOString().split('T')[0]
+            };
+
+            pets.push(newPet);
+            savePets();
+            renderPets();
+            closeAddModal();
+        });
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('addModal');
+            if (event.target === modal) {
+                closeAddModal();
+            }
+        }
+
+        // Initialize
+        loadPets();
+        renderPets();
+    </script>
+</body>
+</html>
