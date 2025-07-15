@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Veterinary Prescription Planner</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/styles/adherence_planner.css" />
+</head>
+<body>
+    <div class="planner-wrapper">
+        <div class="planner-header">
+            <h1 class="planner-title">Veterinary Prescription Planner</h1>
+            <p class="planner-subtitle">Manage prescriptions for injured dogs with precision and care</p>
+        </div>
+        
+        <div class="action-buttons">
+            <button class="btn btn-primary" onclick="openAddModal()">➕ Add New Dog</button>
+            <button class="btn btn-secondary" onclick="toggleTodayDoses()">📋 Today's Doses</button>
+        </div>
+        
+        <div class="dogs-list">
+            <h2 class="section-title">Current Patients</h2>
+            <div id="dogsList"></div>
+        </div>
+        
+        <div id="todayDoses" class="today-doses" style="display: none;">
+            <h2 class="section-title">Today's Required Doses</h2>
+            <div id="dosesList"></div>
+        </div>
+    </div>
+    
+    <!-- Add Dog Modal -->
+    <div id="addModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAddModal()">&times;</span>
+            <h2>Add New Dog</h2>
+            <form id="addDogForm">
+                <div class="form-group">
+                    <label for="dogName">Dog Name:</label>
+                    <input type="text" id="dogName" required>
+                </div>
+                <div class="form-group">
+                    <label for="dogBreed">Breed:</label>
+                    <input type="text" id="dogBreed" required>
+                </div>
+                <div class="form-group">
+                    <label for="injury">Injury/Condition:</label>
+                    <input type="text" id="injury" required>
+                </div>
+                <div class="form-group">
+                    <label for="medication">Medication:</label>
+                    <input type="text" id="medication" required>
+                </div>
+                <div class="form-group">
+                    <label for="medicationType">Type:</label>
+                    <select id="medicationType" required>
+                        <option value="">Select Type</option>
+                        <option value="Tablets">Tablets</option>
+                        <option value="Injections">Injections</option>
+                        <option value="Liquid">Liquid</option>
+                        <option value="Capsules">Capsules</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="dosage">Dosage:</label>
+                    <input type="text" id="dosage" placeholder="e.g., 2 tablets, 5ml" required>
+                </div>
+                <div class="form-group">
+                    <label for="frequency">Frequency:</label>
+                    <select id="frequency" required>
+                        <option value="">Select Frequency</option>
+                        <option value="Once daily">Once daily</option>
+                        <option value="Twice daily">Twice daily</option>
+                        <option value="Three times daily">Three times daily</option>
+                        <option value="Every 8 hours">Every 8 hours</option>
+                        <option value="Every 12 hours">Every 12 hours</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="daysLeft">Days Left:</label>
+                    <input type="number" id="daysLeft" min="1" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Add Dog</button>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        let dogs = [
+            {
+                id: 1,
+                name: "Max",
+                breed: "Golden Retriever",
+                injury: "Broken leg",
+                medication: "Rimadyl",
+                type: "Tablets",
+                dosage: "2 tablets",
+                frequency: "Twice daily",
+                daysLeft: 7
+            },
+            {
+                id: 2,
+                name: "Bella",
+                breed: "German Shepherd",
+                injury: "Post-surgery recovery",
+                medication: "Tramadol",
+                type: "Tablets",
+                dosage: "1 tablet",
+                frequency: "Three times daily",
+                daysLeft: 3
+            },
+            {
+                id: 3,
+                name: "Charlie",
+                breed: "Labrador",
+                injury: "Skin infection",
+                medication: "Antibiotic injection",
+                type: "Injections",
+                dosage: "2ml",
+                frequency: "Once daily",
+                daysLeft: 14
+            }
+        ];
+        
+        function renderDogs() {
+            const dogsList = document.getElementById('dogsList');
+            
+            if (dogs.length === 0) {
+                dogsList.innerHTML = `
+                    <div class="empty-state">
+                        <div>🐕</div>
+                        <p>No dogs currently on prescription</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            dogsList.innerHTML = dogs.map(dog => `
+                <div class="dog-card">
+                    <div class="dog-header">
+                        <div>
+                            <span class="dog-name">${dog.name}</span>
+                            <span class="dog-breed">${dog.breed}</span>
+                        </div>
+                        <div class="dog-actions">
+                            <button class="btn btn-danger btn-small" onclick="deleteDog(${dog.id})">🗑️ Delete</button>
+                        </div>
+                    </div>
+                    <div class="prescription-info">
+                        <div class="prescription-detail">
+                            <h4>Injury/Condition</h4>
+                            <p>${dog.injury}</p>
+                        </div>
+                        <div class="prescription-detail">
+                            <h4>Medication</h4>
+                            <p>${dog.medication}</p>
+                            <p><strong>Type:</strong> ${dog.type}</p>
+                        </div>
+                        <div class="prescription-detail">
+                            <h4>Dosage & Frequency</h4>
+                            <p><strong>Dose:</strong> ${dog.dosage}</p>
+                            <p><strong>Frequency:</strong> ${dog.frequency}</p>
+                        </div>
+                        <div class="prescription-detail">
+                            <h4>Days Remaining</h4>
+                            <span class="days-left ${dog.daysLeft <= 3 ? 'critical' : dog.daysLeft <= 7 ? 'warning' : ''}">${dog.daysLeft} days left</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function renderTodayDoses() {
+            const dosesList = document.getElementById('dosesList');
+            
+            if (dogs.length === 0) {
+                dosesList.innerHTML = `
+                    <div class="empty-state">
+                        <div>💊</div>
+                        <p>No doses required today</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            dosesList.innerHTML = dogs.map(dog => `
+                <div class="dose-item">
+                    <div class="dose-info">
+                        <div class="dose-dog-name">${dog.name}</div>
+                        <div class="dose-medication">${dog.medication} (${dog.type})</div>
+                        <div class="dose-medication">${dog.frequency}</div>
+                    </div>
+                    <div class="dose-amount">${dog.dosage}</div>
+                </div>
+            `).join('');
+        }
+        
+        function openAddModal() {
+            document.getElementById('addModal').style.display = 'block';
+        }
+        
+        function closeAddModal() {
+            document.getElementById('addModal').style.display = 'none';
+            document.getElementById('addDogForm').reset();
+        }
+        
+        function toggleTodayDoses() {
+            const todayDoses = document.getElementById('todayDoses');
+            if (todayDoses.style.display === 'none') {
+                todayDoses.style.display = 'block';
+                renderTodayDoses();
+            } else {
+                todayDoses.style.display = 'none';
+            }
+        }
+        
+        function deleteDog(id) {
+            if (confirm('Are you sure you want to delete this dog from the prescription list?')) {
+                dogs = dogs.filter(dog => dog.id !== id);
+                renderDogs();
+                if (document.getElementById('todayDoses').style.display === 'block') {
+                    renderTodayDoses();
+                }
+            }
+        }
+        
+        document.getElementById('addDogForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const newDog = {
+                id: Date.now(),
+                name: document.getElementById('dogName').value,
+                breed: document.getElementById('dogBreed').value,
+                injury: document.getElementById('injury').value,
+                medication: document.getElementById('medication').value,
+                type: document.getElementById('medicationType').value,
+                dosage: document.getElementById('dosage').value,
+                frequency: document.getElementById('frequency').value,
+                daysLeft: parseInt(document.getElementById('daysLeft').value)
+            };
+            
+            dogs.push(newDog);
+            renderDogs();
+            closeAddModal();
+            
+            if (document.getElementById('todayDoses').style.display === 'block') {
+                renderTodayDoses();
+            }
+        });
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('addModal');
+            if (event.target === modal) {
+                closeAddModal();
+            }
+        }
+        
+        // Initial render
+        renderDogs();
+    </script>
+</body>
+</html>
