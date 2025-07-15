@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Today's Doses - Veterinary Planner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ff8a65 0%, #ff7043 50%, #ff5722 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .doses-wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 25px;
+            padding: 40px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2);
+        }
+        
+        .doses-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .doses-title {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #ff6f00, #ff8f00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        
+        .doses-subtitle {
+            font-size: 1.1rem;
+            color: #555;
+            margin-bottom: 20px;
+        }
+        
+        .current-date {
+            background: linear-gradient(135deg, #4caf50, #66bb6a);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 18px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(255, 111, 0, 0.1);
+            border-left: 5px solid #ff6f00;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #ff6f00;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .time-slots {
+            margin-bottom: 40px;
+        }
+        
+        .time-slot {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            border-left: 6px solid #4caf50;
+        }
+        
+        .time-slot.morning {
+            border-left-color: #ff9800;
+        }
+        
+        .time-slot.afternoon {
+            border-left-color: #2196f3;
+        }
+        
+        .time-slot.evening {
+            border-left-color: #9c27b0;
+        }
+        
+        .time-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .time-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #333;
+        }
+        
+        .time-range {
+            background: rgba(76, 175, 80, 0.1);
+            color: #4caf50;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .time-range.morning {
+            background: rgba(255, 152, 0, 0.1);
+            color: #ff9800;
+        }
+        
+        .time-range.afternoon {
+            background: rgba(33, 150, 243, 0.1);
+            color: #2196f3;
+        }
+        
+        .time-range.evening {
+            background: rgba(156, 39, 176, 0.1);
+            color: #9c27b0;
+        }
+        
+        .dose-count {
+            background: #f5f5f5;
+            color: #666;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .doses-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        
+        .dose-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .dose-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .dose-card.completed {
+            border-color: #4caf50;
+            background: #e8f5e8;
+        }
+        
+        .dose-card.overdue {
+            border-color: #f44336;
+            background: #ffebee;
+        }
+        
+        .dose-status {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            padding: 4px 8px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .dose-status.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .dose-status.completed {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .dose-status.overdue {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .animal-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .animal-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff6f00, #ff8f00);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            font-weight: 700;
+        }
+        
+        .animal-details h3 {
+            font-size: 1.2rem;
+            color: #333;
+            margin-bottom: 3px;
+        }
+        
+        .animal-details p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .medication-info {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+        
+        .medication-name {
+            font-weight: 700;
+            color: #ff6f00;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+        
+        .medication-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .medication-type {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .medication-dosage {
+            background: #f3e5f5;
+            color: #7b1fa2;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .dose-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-complete {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .btn-complete:hover {
+            background: #45a049;
+        }
+        
+        .btn-skip {
+            background: #ff9800;
+            color: white;
+        }
+        
+        .btn-skip:hover {
+            background: #f57c00;
+        }
+        
+        .btn-undo {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-undo:hover {
+            background: #5a6268;
+        }
+        
+        .navigation {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .nav-btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #ff6f00, #ff8f00);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(135deg, #ff8f00, #ffa000);
+        }
+        
+        .empty-slot {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-style: italic;
+        }
+        
+        @media (max-width: 768px) {
+            .doses-wrapper {
+                padding: 20px;
+            }
+            
+            .doses-title {
+                font-size: 2rem;
+            }
+            
+            .summary-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .doses-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .time-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .medication-details {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="doses-wrapper">
+        <div class="doses-header">
+            <h1 class="doses-title">Today's Doses</h1>
+            <p class="doses-subtitle">Complete medication schedule for all patients</p>
+            <div class="current-date" id="currentDate"></div>
+        </div>
+        
+        <div class="summary-stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalDoses">0</div>
+                <div class="stat-label">Total Doses Today</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="completedDoses">0</div>
+                <div class="stat-label">Completed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="pendingDoses">0</div>
+                <div class="stat-label">Pending</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="overdueDoses">0</div>
+                <div class="stat-label">Overdue</div>
+            </div>
+        </div>
+        
+        <div class="time-slots">
+            <div class="time-slot morning">
+                <div class="time-header">
+                    <h2 class="time-title">🌅 Morning Doses</h2>
+                    <div class="time-range morning">6:00 AM - 12:00 PM</div>
+                    <div class="dose-count" id="morningCount">0 doses</div>
+                </div>
+                <div class="doses-grid" id="morningDoses"></div>
+            </div>
+            
+            <div class="time-slot afternoon">
+                <div class="time-header">
+                    <h2 class="time-title">☀️ Afternoon Doses</h2>
+                    <div class="time-range afternoon">12:00 PM - 6:00 PM</div>
+                    <div class="dose-count" id="afternoonCount">0 doses</div>
+                </div>
+                <div class="doses-grid" id="afternoonDoses"></div>
+            </div>
+            
+            <div class="time-slot evening">
+                <div class="time-header">
+                    <h2 class="time-title">🌙 Evening Doses</h2>
+                    <div class="time-range evening">6:00 PM - 12:00 AM</div>
+                    <div class="dose-count" id="eveningCount">0 doses</div>
+                </div>
+                <div class="doses-grid" id="eveningDoses"></div>
+            </div>
+        </div>
+        
+        <div class="navigation">
+            <a href="#" class="nav-btn" onclick="goBackToPlanner()">← Back to Planner</a>
+        </div>
+    </div>
+    
+    <script>
+        // Sample data - in real app this would come from the main planner
+        let dogs = [
+            {
+                id: 1,
+                name: "Max",
+                breed: "Golden Retriever",
+                injury: "Broken leg",
+                medication: "Rimadyl",
+                type: "Tablets",
+                dosage: "2 tablets",
+                frequency: "Twice daily",
+                daysLeft: 7,
+                times: ["8:00 AM", "8:00 PM"]
+            },
+            {
+                id: 2,
+                name: "Bella",
+                breed: "German Shepherd",
+                injury: "Post-surgery recovery",
+                medication: "Tramadol",
+                type: "Tablets",
+                dosage: "1 tablet",
+                frequency: "Three times daily",
+                daysLeft: 3,
+                times: ["8:00 AM", "2:00 PM", "8:00 PM"]
+            },
+            {
+                id: 3,
+                name: "Charlie",
+                breed: "Labrador",
+                injury: "Skin infection",
+                medication: "Antibiotic injection",
+                type: "Injections",
+                dosage: "2ml",
+                frequency: "Once daily",
+                daysLeft: 14,
+                times: ["10:00 AM"]
+            },
+            {
+                id: 4,
+                name: "Luna",
+                breed: "Border Collie",
+                injury: "Eye infection",
+                medication: "Eye drops",
+                type: "Liquid",
+                dosage: "3 drops",
+                frequency: "Four times daily",
+                daysLeft: 5,
+                times: ["7:00 AM", "1:00 PM", "7:00 PM", "11:00 PM"]
+            }
+        ];
+        
+        // Track dose completion status
+        let doseStatus = {};
+        
+        function initializeDoseStatus() {
+            dogs.forEach(dog => {
+                dog.times.forEach(time => {
+                    const key = `${dog.id}-${time}`;
+                    if (!doseStatus[key]) {
+                        doseStatus[key] = 'pending';
+                    }
+                });
+            });
+        }
+        
+        function generateDoseSchedule() {
+            const schedule = {
+                morning: [],
+                afternoon: [],
+                evening: []
+            };
+            
+            dogs.forEach(dog => {
+                dog.times.forEach(time => {
+                    const hour = parseInt(time.split(':')[0]);
+                    const isPM = time.includes('PM');
+                    const hour24 = isPM && hour !== 12 ? hour + 12 : (!isPM && hour === 12 ? 0 : hour);
+                    
+                    const dose = {
+                        id: `${dog.id}-${time}`,
+                        dogId: dog.id,
+                        dogName: dog.name,
+                        breed: dog.breed,
+                        injury: dog.injury,
+                        medication: dog.medication,
+                        type: dog.type,
+                        dosage: dog.dosage,
+                        time: time,
+                        status: doseStatus[`${dog.id}-${time}`] || 'pending'
+                    };
+                    
+                    if (hour24 >= 6 && hour24 < 12) {
+                        schedule.morning.push(dose);
+                    } else if (hour24 >= 12 && hour24 < 18) {
+                        schedule.afternoon.push(dose);
+                    } else {
+                        schedule.evening.push(dose);
+                    }
+                });
+            });
+            
+            // Sort by time
+            Object.keys(schedule).forEach(period => {
+                schedule[period].sort((a, b) => {
+                    const timeA = convertTo24Hour(a.time);
+                    const timeB = convertTo24Hour(b.time);
+                    return timeA - timeB;
+                });
+            });
+            
+            return schedule;
+        }
+        
+        function convertTo24Hour(time) {
+            const [timePart, meridian] = time.split(' ');
+            let [hours, minutes] = timePart.split(':').map(Number);
+            
+            if (meridian === 'PM' && hours !== 12) {
+                hours += 12;
+            } else if (meridian === 'AM' && hours === 12) {
+                hours = 0;
+            }
+            
+            return hours * 60 + minutes;
+        }
+        
+        function getInitials(name) {
+            return name.split(' ').map(word => word[0]).join('').toUpperCase();
+        }
+        
+        function getDoseStatusClass(status, time) {
+            const now = new Date();
+            const doseTime = new Date();
+            const [timePart, meridian] = time.split(' ');
+            let [hours, minutes] = timePart.split(':').map(Number);
+            
+            if (meridian === 'PM' && hours !== 12) {
+                hours += 12;
+            } else if (meridian === 'AM' && hours === 12) {
+                hours = 0;
+            }
+            
+            doseTime.setHours(hours, minutes, 0, 0);
+            
+            if (status === 'completed') return 'completed';
+            if (now > doseTime) return 'overdue';
+            return 'pending';
+        }
+        
+        function renderDoseCard(dose) {
+            const statusClass = getDoseStatusClass(dose.status, dose.time);
+            const statusText = dose.status === 'completed' ? 'Completed' : 
+                              statusClass === 'overdue' ? 'Overdue' : 'Pending';
+            
+            return `
+                <div class="dose-card ${statusClass}">
+                    <div class="dose-status ${statusClass}">${statusText}</div>
+                    <div class="animal-info">
+                        <div class="animal-avatar">${getInitials(dose.dogName)}</div>
+                        <div class="animal-details">
+                            <h3>${dose.dogName}</h3>
+                            <p>${dose.breed} • ${dose.injury}</p>
+                        </div>
+                    </div>
+                    <div class="medication-info">
+                        <div class="medication-name">${dose.medication}</div>
+                        <div class="medication-details">
+                            <span class="medication-type">${dose.type}</span>
+                            <span class="medication-dosage">${dose.dosage}</span>
+                        </div>
+                    </div>
+                    <div class="dose-actions">
+                        <strong>⏰ ${dose.time}</strong>
+                        ${dose.status === 'completed' ? 
+                            `<button class="btn btn-undo" onclick="undoDose('${dose.id}')">↶ Undo</button>` :
+                            `<button class="btn btn-complete" onclick="completeDose('${dose.id}')">✓ Complete</button>
+                             <button class="btn btn-skip" onclick="skipDose('${dose.id}')">⏭ Skip</button>`
+                        }
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderSchedule() {
+            const schedule = generateDoseSchedule();
+            
+            // Render each time period
+            Object.keys(schedule).forEach(period => {
+                const container = document.getElementById(`${period}Doses`);
+                const countElement = document.getElementById(`${period}Count`);
+                
+                if (schedule[period].length === 0) {
+                    container.innerHTML = '<div class="empty-slot">No doses scheduled for this time period</div>';
+                    countElement.textContent = '0 doses';
+                } else {
+                    container.innerHTML = schedule[period].map(dose => renderDoseCard(dose)).join('');
+                    countElement.textContent = `${schedule[period].length} dose${schedule[period].length !== 1 ? 's' : ''}`;
+                }
+            });
+            
+            updateStats();
+        }
+        
+        function updateStats() {
+            const allDoses = [];
+            dogs.forEach(dog => {
+                dog.times.forEach(time => {
+                    allDoses.push(doseStatus[`${dog.id}-${time}`] || 'pending');
+                });
+            });
+            
+            const total = allDoses.length;
+            const completed = allDoses.filter(status => status === 'completed').length;
+            const pending = allDoses.filter(status => status === 'pending').length;
+            const overdue = allDoses.filter((status, index) => {
+                if (status === 'completed') return false;
+                const doseIndex = Math.floor(index / dogs.length);
+                return getDoseStatusClass(status, dogs[doseIndex % dogs.length].times[index % dogs[doseIndex % dogs.length].times.length]) === 'overdue';
+            }).length;
+            
+            document.getElementById('totalDoses').textContent = total;
+            document.getElementById('completedDoses').textContent = completed;
+            document.getElementById('pendingDoses').textContent = pending;
+            document.getElementById('overdueDoses').textContent = overdue;
+        }
+        
+        function completeDose(doseId) {
+            doseStatus[doseId] = 'completed';
+            renderSchedule();
+        }
+        
+        function skipDose(doseId) {
+            doseStatus[doseId] = 'skipped';
+            renderSchedule();
+        }
+        
+        function undoDose(doseId) {
+            doseStatus[doseId] = 'pending';
+            renderSchedule();
+        }
+        
+        function goBackToPlanner() {
+            // In a real app, this would navigate back to the main planner
+            alert('Navigate back to main planner');
+        }
+        
+        function updateCurrentDate() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            };
+            document.getElementById('currentDate').textContent = now.toLocaleDateString('en-US', options);
+        }
+        
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCurrentDate();
+            initializeDoseStatus();
+            renderSchedule();
+        });
+    </script>
+</body>
+</html>
