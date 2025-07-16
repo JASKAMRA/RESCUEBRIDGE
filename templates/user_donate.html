@@ -9,6 +9,45 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/static/styles/user_donate.css" />
+    <style>
+      .sticky-donation {
+        position: sticky;
+        top: 0;
+        background-color: white;
+        padding: 20px 0;
+        z-index: 100;
+        border-bottom: 1px solid #ddd;
+      }
+      .ngo-section {
+        margin-top: 40px;
+      }
+      .ngo-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+      }
+      .ngo-card {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 20px;
+        background-color: #fafafa;
+      }
+      .ngo-card h3 {
+        margin-top: 0;
+      }
+      .ngo-card button {
+        margin-top: 10px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        cursor: pointer;
+        border-radius: 4px;
+      }
+      .ngo-card button:hover {
+        background-color: #388e3c;
+      }
+    </style>
   </head>
   <body>
     <div class="container">
@@ -35,7 +74,7 @@
         </div>
       </div>
 
-      <div class="donation-options">
+      <div class="donation-options sticky-donation">
         <h2>Choose Donation Amount</h2>
         <div class="amount-grid">
           <button class="amount-btn" onclick="selectAmount(500)">₹500</button>
@@ -60,53 +99,23 @@
         </div>
       </div>
 
-      <div class="donation-purposes">
-        <h2>Where Your Money Goes</h2>
-        <div class="purpose-grid">
-          <div class="purpose-card">
-            <div class="purpose-icon">🍖</div>
-            <h3>Food & Nutrition</h3>
-            <p>Provide daily meals for stray animals</p>
-            <button
-              class="donate-purpose-btn"
-              onclick="donateForPurpose('food')"
-            >
-              Donate for Food
+      <div class="ngo-section">
+        <h2>Support an NGO Directly</h2>
+        <div class="ngo-grid">
+          {% for ngo in ngos %}
+          <div class="ngo-card">
+            <h3>{{ ngo["NGO Name"] }}</h3>
+            <p>
+              <strong>Reg. No:</strong> {{ ngo["NGO Registration Number"] }}
+            </p>
+            <p><strong>Email:</strong> {{ ngo["Email"] }}</p>
+            <p><strong>Phone:</strong> {{ ngo["Phone Number"] }}</p>
+            <p><strong>Address:</strong> {{ ngo["Address"] }}</p>
+            <button onclick="donateToNGO('{{ ngos['NGO Name'] }}')">
+              Donate to This NGO
             </button>
           </div>
-          <div class="purpose-card">
-            <div class="purpose-icon">🏥</div>
-            <h3>Medical Care</h3>
-            <p>Emergency treatment and vaccinations</p>
-            <button
-              class="donate-purpose-btn"
-              onclick="donateForPurpose('medical')"
-            >
-              Donate for Medical
-            </button>
-          </div>
-          <div class="purpose-card">
-            <div class="purpose-icon">🏠</div>
-            <h3>Shelter</h3>
-            <p>Safe housing and rehabilitation</p>
-            <button
-              class="donate-purpose-btn"
-              onclick="donateForPurpose('shelter')"
-            >
-              Donate for Shelter
-            </button>
-          </div>
-          <div class="purpose-card">
-            <div class="purpose-icon">🎯</div>
-            <h3>General Fund</h3>
-            <p>Support all animal welfare activities</p>
-            <button
-              class="donate-purpose-btn"
-              onclick="donateForPurpose('general')"
-            >
-              Donate General
-            </button>
-          </div>
+          {% endfor %}
         </div>
       </div>
 
@@ -123,7 +132,6 @@
               For: <span id="selectedPurpose">General Fund</span>
             </div>
           </div>
-
           <form id="donationForm">
             <div class="form-group">
               <label for="donorName">Full Name</label>
@@ -147,10 +155,10 @@
               </select>
             </div>
             <div class="form-group">
-              <label>
-                <input type="checkbox" id="anonymous" /> Make this donation
-                anonymous
-              </label>
+              <label
+                ><input type="checkbox" id="anonymous" /> Make this donation
+                anonymous</label
+              >
             </div>
             <button type="submit" class="submit-btn">Proceed to Payment</button>
           </form>
@@ -161,6 +169,7 @@
     <script>
       let selectedAmount = 0;
       let selectedPurpose = "general";
+      let selectedRecipient = "General Fund";
 
       function selectAmount(amount) {
         selectedAmount = amount;
@@ -188,11 +197,25 @@
           alert("Please select an amount first");
           return;
         }
-
         selectedPurpose = purpose;
         document.getElementById("selectedAmount").textContent = selectedAmount;
         document.getElementById("selectedPurpose").textContent =
           getPurposeName(purpose);
+        document.getElementById("donationModal").style.display = "block";
+      }
+
+      function donateToNGO(ngoName) {
+        if (selectedAmount === 0) {
+          alert("Please select an amount first");
+          return;
+        }
+
+        selectedPurpose = "Donation to " + ngoName;
+        selectedRecipient = ngoName; // 🆕 Yeh line add karo
+
+        document.getElementById("selectedAmount").textContent = selectedAmount;
+        document.getElementById("selectedPurpose").textContent =
+          selectedPurpose;
         document.getElementById("donationModal").style.display = "block";
       }
 
@@ -215,11 +238,11 @@
         .getElementById("donationForm")
         .addEventListener("submit", function (e) {
           e.preventDefault();
-
           const donation = {
             id: Date.now(),
             amount: selectedAmount,
             purpose: selectedPurpose,
+            recipient: selectedRecipient, // 🆕 Yeh line add karna zaruri hai
             name: document.getElementById("donorName").value,
             email: document.getElementById("donorEmail").value,
             phone: document.getElementById("donorPhone").value,
@@ -228,18 +251,30 @@
             date: new Date().toLocaleString(),
             status: "Completed",
           };
+          fetch("/submit-donation", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(donation),
+          }).then((response) => {
+            if (response.ok) {
+              alert(
+                "Thank you! Your donation has been processed successfully."
+              );
+              closeDonationModal();
+              selectedAmount = 0;
+              selectedPurpose = "general";
+              document
+                .querySelectorAll(".amount-btn")
+                .forEach((btn) => btn.classList.remove("selected"));
+              document.getElementById("customAmount").value = "";
+            } else {
+              alert("Something went wrong. Please try again.");
+            }
+          });
 
-          // Save to localStorage
-          let donations = JSON.parse(
-            localStorage.getItem("user_donations") || "[]"
-          );
-          donations.push(donation);
-          localStorage.setItem("user_donations", JSON.stringify(donations));
-
-          alert("Thank you! Your donation has been processed successfully.");
           closeDonationModal();
-
-          // Reset selections
           selectedAmount = 0;
           selectedPurpose = "general";
           document
@@ -248,7 +283,6 @@
           document.getElementById("customAmount").value = "";
         });
 
-      // Close modal when clicking outside
       window.onclick = function (event) {
         const modal = document.getElementById("donationModal");
         if (event.target === modal) {
