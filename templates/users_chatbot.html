@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Basic AI Chatbot</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/styles/users_chatbot.css" />
+  </head>
+  <body>
+    <div class="chatbot-container">
+      <div class="chat-header">AI Assistant</div>
+
+      <div class="chat-messages" id="chatMessages">
+        <div class="message bot-message">
+          Hello! I'm your AI assistant. How can I help you today?
+        </div>
+      </div>
+
+      <div class="typing-indicator" id="typingIndicator">
+        <div class="typing-dots">
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </div>
+      </div>
+
+      <div class="chat-input-container">
+        <input
+          type="text"
+          id="chatInput"
+          class="chat-input"
+          placeholder="Type your message..."
+        />
+        <button id="sendButton" class="send-button">→</button>
+      </div>
+    </div>
+
+    <script>
+      const chatMessages = document.getElementById("chatMessages");
+      const chatInput = document.getElementById("chatInput");
+      const sendButton = document.getElementById("sendButton");
+      const typingIndicator = document.getElementById("typingIndicator");
+
+      function addMessage(message, isUser = false) {
+        const messageDiv = document.createElement("div");
+        messageDiv.className = `message ${
+          isUser ? "user-message" : "bot-message"
+        }`;
+        messageDiv.textContent = message;
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+
+      function showTypingIndicator() {
+        typingIndicator.style.display = "block";
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+
+      function hideTypingIndicator() {
+        typingIndicator.style.display = "none";
+      }
+
+      function sendMessage() {
+        const userMessage = chatInput.value.trim();
+        if (!userMessage) return;
+
+        addMessage(userMessage, true); // show user message
+        chatInput.value = "";
+        showTypingIndicator();
+
+        // Call Flask backend
+        fetch("/api/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ message: userMessage }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            hideTypingIndicator();
+            if (data.reply) {
+              addMessage(data.reply, false); // show AI reply
+            } else {
+              addMessage("⚠️ No response from AI.", false);
+            }
+          })
+          .catch((error) => {
+            hideTypingIndicator();
+            console.error("Error:", error);
+            addMessage("❌ Error contacting AI server.", false);
+          });
+      }
+
+      sendButton.addEventListener("click", sendMessage);
+      chatInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+          sendMessage();
+        }
+      });
+
+      chatInput.focus();
+    </script>
+  </body>
+</html>

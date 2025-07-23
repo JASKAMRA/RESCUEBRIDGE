@@ -1,5 +1,10 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
 import sqlite3
+import google.generativeai as genai
+from dotenv import load_dotenv
+import os
+load_dotenv()
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key'
@@ -483,7 +488,32 @@ def get_animal_image(image_id):
         return result[0], 200, {'Content-Type': 'image/jpeg'}
     else:
         return '', 404
+@app.route('/user/users_chatbot.html')
+def user_chatbot():
+    if 'user_email' not in session or session.get('user_role') != 'user':
+        return redirect(url_for('login'))
+    return render_template('users_chatbot.html')
+@app.route('/api/chat', methods=['POST'])
+def chatbot_reply():
+    if 'user_email' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
 
+    data = request.get_json()
+    user_message = data.get('message')
+
+    if not user_message:
+        return jsonify({'error': 'No message provided'}), 400
+
+    try:
+        model = genai.GenerativeModel(model_name="models/gemini-1.5-flash-latest")
+        chat = model.start_chat(history=[])
+        response = chat.send_message(user_message)
+        reply = response.text.strip()
+        return jsonify({'reply': reply})
+
+    except Exception as e:
+        print("Gemini error:", e)
+        return jsonify({'error': 'Failed to get response from Gemini'}), 500
 
 # ------------------- RUN APP -------------------
 if __name__ == '__main__':

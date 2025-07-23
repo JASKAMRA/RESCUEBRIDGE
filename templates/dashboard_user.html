@@ -74,6 +74,15 @@
           <button class="card-button">Find Vets</button>
         </div>
       </div>
+      <div class="dashboard-card" onclick="openChatbot()">
+        <div class="card-icon">🤖</div>
+        <h2 class="card-title">Chat with PetBot</h2>
+        <p class="card-description">
+          Ask questions, get help, or chat with our intelligent assistant
+          PetBot.
+        </p>
+        <button class="card-button">Start Chat</button>
+      </div>
     </div>
 
     <script>
@@ -110,6 +119,9 @@
       document.querySelectorAll(".stat-card").forEach((card, index) => {
         card.style.animationDelay = `${index * 0.1}s`;
       });
+      function openChatbot() {
+        window.location.href = "/user/users_chatbot.html";
+      }
     </script>
   </body>
 </html>
