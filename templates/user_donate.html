@@ -47,6 +47,81 @@
       .ngo-card button:hover {
         background-color: #388e3c;
       }
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.4);
+      }
+      .modal-content {
+        background-color: #fefefe;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 500px;
+        border-radius: 8px;
+      }
+      .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+      .close:hover {
+        color: black;
+      }
+      .donation-summary {
+        text-align: center;
+        margin-bottom: 20px;
+        padding: 20px;
+        background-color: #f0f8ff;
+        border-radius: 8px;
+      }
+      .amount-display {
+        font-size: 2em;
+        font-weight: bold;
+        color: #4caf50;
+      }
+      .purpose-display {
+        font-size: 1.1em;
+        margin-top: 10px;
+      }
+      .form-group {
+        margin-bottom: 15px;
+      }
+      .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 500;
+      }
+      .form-group input,
+      .form-group select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 16px;
+      }
+      .submit-btn {
+        width: 100%;
+        padding: 12px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        cursor: pointer;
+      }
+      .submit-btn:hover {
+        background-color: #388e3c;
+      }
+
     </style>
   </head>
   <body>
@@ -156,7 +231,7 @@
             </div>
             <div class="form-group">
               <label
-                ><input type="checkbox" id="anonymous" /> Make this donation
+                ><input type="checkbox" id="anonymous" onchange="toggleAnonymous()" /> Make this donation
                 anonymous</label
               >
             </div>
@@ -170,6 +245,13 @@
       let selectedAmount = 0;
       let selectedPurpose = "general";
       let selectedRecipient = "General Fund";
+      
+      // Store original values for toggling
+      let originalValues = {
+        name: '',
+        email: '',
+        phone: ''
+      };
 
       function selectAmount(amount) {
         selectedAmount = amount;
@@ -211,7 +293,7 @@
         }
 
         selectedPurpose = "Donation to " + ngoName;
-        selectedRecipient = ngoName; // 🆕 Yeh line add karo
+        selectedRecipient = ngoName;
 
         document.getElementById("selectedAmount").textContent = selectedAmount;
         document.getElementById("selectedPurpose").textContent =
@@ -229,9 +311,55 @@
         return purposes[purpose] || "General Fund";
       }
 
+      function toggleAnonymous() {
+        const anonymousCheckbox = document.getElementById("anonymous");
+        const nameField = document.getElementById("donorName");
+        const emailField = document.getElementById("donorEmail");
+        const phoneField = document.getElementById("donorPhone");
+
+        if (anonymousCheckbox.checked) {
+          // Store original values
+          originalValues.name = nameField.value;
+          originalValues.email = emailField.value;
+          originalValues.phone = phoneField.value;
+          
+          // Replace with XXX
+          nameField.value = "XXX";
+          emailField.value = "XXX";
+          phoneField.value = "XXX";
+          
+          // Make fields readonly
+          nameField.readOnly = true;
+          emailField.readOnly = true;
+          phoneField.readOnly = true;
+        } else {
+          // Restore original values
+          nameField.value = originalValues.name;
+          emailField.value = originalValues.email;
+          phoneField.value = originalValues.phone;
+          
+          // Make fields editable again
+          nameField.readOnly = false;
+          emailField.readOnly = false;
+          phoneField.readOnly = false;
+        }
+      }
+
       function closeDonationModal() {
         document.getElementById("donationModal").style.display = "none";
         document.getElementById("donationForm").reset();
+        
+        // Reset original values
+        originalValues = {
+          name: '',
+          email: '',
+          phone: ''
+        };
+        
+        // Make sure fields are editable
+        document.getElementById("donorName").readOnly = false;
+        document.getElementById("donorEmail").readOnly = false;
+        document.getElementById("donorPhone").readOnly = false;
       }
 
       document
@@ -242,7 +370,7 @@
             id: Date.now(),
             amount: selectedAmount,
             purpose: selectedPurpose,
-            recipient: selectedRecipient, // 🆕 Yeh line add karna zaruri hai
+            recipient: selectedRecipient,
             name: document.getElementById("donorName").value,
             email: document.getElementById("donorEmail").value,
             phone: document.getElementById("donorPhone").value,
