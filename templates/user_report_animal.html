@@ -128,35 +128,45 @@
 
     <script>
       document
-        .getElementById("reportForm")
-        .addEventListener("submit", function (e) {
-          e.preventDefault();
+  .getElementById("reportForm")
+  .addEventListener("submit", function (e) {
+    e.preventDefault();
 
-          const report = {
-            id: Date.now(),
-            location: document.getElementById("location").value,
-            city: document.getElementById("city").value,
-            landmarks: document.getElementById("landmarks").value,
-            animalType: document.getElementById("animalType").value,
-            condition: document.getElementById("condition").value,
-            description: document.getElementById("description").value,
-            phone: document.getElementById("phone").value,
-            name: document.getElementById("name").value,
-            date: new Date().toLocaleString(),
-            status: "Submitted",
-          };
+    const report = {
+      location: document.getElementById("location").value,
+      city: document.getElementById("city").value,
+      landmarks: document.getElementById("landmarks").value,
+      animalType: document.getElementById("animalType").value,
+      condition: document.getElementById("condition").value,
+      description: document.getElementById("description").value,
+      phone: document.getElementById("phone").value,
+      name: document.getElementById("name").value,
+      date: new Date().toLocaleString(),
+    };
 
-          // Save to localStorage
-          let reports = JSON.parse(
-            localStorage.getItem("user_reports") || "[]"
-          );
-          reports.push(report);
-          localStorage.setItem("user_reports", JSON.stringify(reports));
-
+    fetch("/submit-animal-report", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(report),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
           alert("Report submitted successfully! NGOs will be notified.");
-          this.reset();
+          document.getElementById("reportForm").reset();
           document.getElementById("photoPreview").innerHTML = "";
-        });
+        } else {
+          alert("Failed to submit report.");
+        }
+      })
+      .catch((err) => {
+        console.error("Error:", err);
+        alert("Something went wrong!");
+      });
+  });
+
 
       document
         .getElementById("photos")

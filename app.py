@@ -380,6 +380,37 @@ def logout():
     return redirect(url_for('index'))
 
 # ------------------- NGO SUBPAGES -------------------
+@app.route('/submit-animal-report', methods=['POST'])
+def submit_animal_report():
+    try:
+        data = request.get_json()
+        conn = sqlite3.connect('reports.db')
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT INTO reported_animals (
+                location, city, landmarks, animal_type,
+                condition, description, phone, name, date, status
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            data['location'],
+            data['city'],
+            data['landmarks'],
+            data['animalType'],
+            data['condition'],
+            data['description'],
+            data['phone'],
+            data['name'],
+            data['date'],
+            'Submitted'
+        ))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True, 'message': 'Report saved to database'})
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'message': 'Failed to save report'}), 500
+
 @app.route('/ngo/marketplace')
 def ngo_marketplace():
     return render_template('ngo_marketplace.html')
