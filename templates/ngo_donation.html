@@ -321,93 +321,13 @@
         </table>
       </div>
     </div>
-
+    
     <script>
       // Sample donation data
-      const donations = [
-        {
-          id: 1,
-          date: "2025-01-15",
-          donor: "Rahul Sharma",
-          phone: "+91 98765 43210",
-          amount: 5000,
-          purpose: "Animal Food",
-          status: "completed",
-          method: "UPI",
-        },
-        {
-          id: 2,
-          date: "2025-01-14",
-          donor: "Priya Singh",
-          phone: "+91 87654 32109",
-          amount: 2500,
-          purpose: "Medical Treatment",
-          status: "completed",
-          method: "Card",
-        },
-        {
-          id: 3,
-          date: "2025-01-14",
-          donor: "Amit Kumar",
-          phone: "+91 76543 21098",
-          amount: 1200,
-          purpose: "General Support",
-          status: "processing",
-          method: "Net Banking",
-        },
-        {
-          id: 4,
-          date: "2025-01-13",
-          donor: "Neha Gupta",
-          phone: "+91 65432 10987",
-          amount: 3500,
-          purpose: "Shelter Maintenance",
-          status: "completed",
-          method: "UPI",
-        },
-        {
-          id: 5,
-          date: "2025-01-13",
-          donor: "Vikash Yadav",
-          phone: "+91 54321 09876",
-          amount: 800,
-          purpose: "Animal Food",
-          status: "pending",
-          method: "Cash",
-        },
-        {
-          id: 6,
-          date: "2025-01-12",
-          donor: "Anjali Mehta",
-          phone: "+91 43210 98765",
-          amount: 6000,
-          purpose: "Emergency Surgery",
-          status: "completed",
-          method: "Card",
-        },
-        {
-          id: 7,
-          date: "2025-01-11",
-          donor: "Suresh Patel",
-          phone: "+91 32109 87654",
-          amount: 1500,
-          purpose: "Vaccination Drive",
-          status: "completed",
-          method: "UPI",
-        },
-        {
-          id: 8,
-          date: "2025-01-10",
-          donor: "Kavita Jain",
-          phone: "+91 21098 76543",
-          amount: 2800,
-          purpose: "General Support",
-          status: "processing",
-          method: "Net Banking",
-        },
-      ];
-
+      const donations = {{ donations | tojson | safe }};
       let filteredDonations = [...donations];
+      
+
 
       // Initialize page
       document.addEventListener("DOMContentLoaded", function () {

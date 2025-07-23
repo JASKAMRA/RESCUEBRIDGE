@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
+
 import sqlite3
 
 app = Flask(__name__)
@@ -224,9 +225,7 @@ def submit_donation():
 
 
 # ------------------- NGO SUBPAGES -------------------
-@app.route('/ngo/donation-records')
-def ngo_donation():
-    return render_template('ngo_donation.html')
+
 
 
 @app.route('/ngo/marketplace')
@@ -252,6 +251,26 @@ def medicine_planner():
 @app.route('/shopkeeper/request-planner')
 def request_planner():
     return render_template('shopkeeper_list_requests.html')
+
+@app.route('/ngo/donation-records')
+def ngo_donation():
+    ngo_name = session.get("username", "").strip().lower()
+
+    conn = sqlite3.connect("donations.db")
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM donations")
+    all_donations = cur.fetchall()
+    conn.close()
+
+    filtered_donations = [
+        dict(row) for row in all_donations
+        if row["recipient"].strip().lower() == ngo_name
+    ]
+
+    return render_template("ngo_donation.html", donations=filtered_donations)
+
+
 
 
 # ------------------- RUN APP -------------------
