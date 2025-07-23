@@ -127,45 +127,42 @@
     </div>
 
     <script>
-      document
-  .getElementById("reportForm")
-  .addEventListener("submit", function (e) {
-    e.preventDefault();
+  document.getElementById("reportForm").addEventListener("submit", function (e) {
+  e.preventDefault();
 
-    const report = {
-      location: document.getElementById("location").value,
-      city: document.getElementById("city").value,
-      landmarks: document.getElementById("landmarks").value,
-      animalType: document.getElementById("animalType").value,
-      condition: document.getElementById("condition").value,
-      description: document.getElementById("description").value,
-      phone: document.getElementById("phone").value,
-      name: document.getElementById("name").value,
-      date: new Date().toLocaleString(),
-    };
+  const formData = new FormData();
+  formData.append("location", document.getElementById("location").value);
+  formData.append("city", document.getElementById("city").value);
+  formData.append("landmarks", document.getElementById("landmarks").value);
+  formData.append("animalType", document.getElementById("animalType").value);
+  formData.append("condition", document.getElementById("condition").value);
+  formData.append("description", document.getElementById("description").value);
+  formData.append("phone", document.getElementById("phone").value);
+  formData.append("name", document.getElementById("name").value);
+  formData.append("date", new Date().toLocaleString());
 
-    fetch("/submit-animal-report", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(report),
+  const photos = document.getElementById("photos").files;
+for (let i = 0; i < photos.length; i++) {
+  formData.append("photos", photos[i]); // "photos" is key for Flask getlist()
+}
+
+
+  fetch("/submit-animal-report", {
+    method: "POST",
+    body: formData,
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      alert(data.message);
+      document.getElementById("reportForm").reset();
+      document.getElementById("photoPreview").innerHTML = "";
     })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          alert("Report submitted successfully! NGOs will be notified.");
-          document.getElementById("reportForm").reset();
-          document.getElementById("photoPreview").innerHTML = "";
-        } else {
-          alert("Failed to submit report.");
-        }
-      })
-      .catch((err) => {
-        console.error("Error:", err);
-        alert("Something went wrong!");
-      });
-  });
+    .catch((err) => {
+      console.error(err);
+      alert("Something went wrong!");
+    });
+});
+
 
 
       document

@@ -383,7 +383,17 @@ def logout():
 @app.route('/submit-animal-report', methods=['POST'])
 def submit_animal_report():
     try:
-        data = request.get_json()
+        location = request.form['location']
+        city = request.form['city']
+        landmarks = request.form.get('landmarks', '')
+        animal_type = request.form['animalType']
+        condition = request.form['condition']
+        description = request.form.get('description', '')
+        phone = request.form['phone']
+        name = request.form['name']
+        date = request.form['date']
+
+        # Step 1: Save report
         conn = sqlite3.connect('reports.db')
         cursor = conn.cursor()
         cursor.execute('''
@@ -392,24 +402,32 @@ def submit_animal_report():
                 condition, description, phone, name, date, status
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
-            data['location'],
-            data['city'],
-            data['landmarks'],
-            data['animalType'],
-            data['condition'],
-            data['description'],
-            data['phone'],
-            data['name'],
-            data['date'],
-            'Submitted'
+            location, city, landmarks, animal_type,
+            condition, description, phone, name, date, 'Submitted'
         ))
+        report_id = cursor.lastrowid
+
+        # Step 2: Save all uploaded images
+        uploaded_files = request.files.getlist('photos')  # 👈 Not request.files['photo']
+        for file in uploaded_files:
+            if file and file.filename:
+                image_data = file.read()
+                cursor.execute('''
+                INSERT INTO animal_images (report_id, image)
+                VALUES (?, ?)
+                ''', (report_id, image_data))
+
+
         conn.commit()
         conn.close()
-        return jsonify({'success': True, 'message': 'Report saved to database'})
+
+        return jsonify({'success': True, 'message': 'Report with multiple images saved to DB'})
+
     except Exception as e:
         import traceback
         traceback.print_exc()
-        return jsonify({'success': False, 'message': 'Failed to save report'}), 500
+        return jsonify({'success': False, 'message': 'Error saving report'}), 500
+
 
 @app.route('/ngo/marketplace')
 def ngo_marketplace():
@@ -452,6 +470,20 @@ def ngo_donation():
     ]
 
     return render_template("ngo_donation.html", donations=filtered_donations)
+
+@app.route('/animal-image/<int:image_id>')
+def get_animal_image(image_id):
+    conn = sqlite3.connect('reports.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT image FROM animal_images WHERE id = ?", (image_id,))
+    result = cursor.fetchone()
+    conn.close()
+
+    if result and result[0]:
+        return result[0], 200, {'Content-Type': 'image/jpeg'}
+    else:
+        return '', 404
+
 
 # ------------------- RUN APP -------------------
 if __name__ == '__main__':

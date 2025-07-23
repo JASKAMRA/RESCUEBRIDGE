@@ -3,6 +3,7 @@ import sqlite3
 conn = sqlite3.connect('reports.db')
 cursor = conn.cursor()
 
+# Main report table
 cursor.execute('''
 CREATE TABLE IF NOT EXISTS reported_animals (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -19,7 +20,17 @@ CREATE TABLE IF NOT EXISTS reported_animals (
 )
 ''')
 
+# Table to store multiple images per report
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS animal_images (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    report_id INTEGER,
+    image BLOB,
+    FOREIGN KEY(report_id) REFERENCES reported_animals(id)
+)
+''')
+
 conn.commit()
 conn.close()
 
-print("reports.db created successfully with table 'reported_animals'")
+print("Tables created.")
