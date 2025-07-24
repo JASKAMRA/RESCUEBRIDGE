@@ -157,14 +157,22 @@ def signup_ngo():
     return render_template('signup_ngo.html')
 
 @app.route('/user/donate')
+@app.route('/user/donate')
 def user_donate_with_ngos():
+    if 'user_email' not in session or session.get('user_role') != 'user':
+        return redirect(url_for('login'))
+
+    user_email = session.get('user_email')
+
     conn = sqlite3.connect('users.db')
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM ngos")
     ngos = cursor.fetchall()
     conn.close()
-    return render_template('user_donate.html', ngos=ngos)
+
+    return render_template('user_donate.html', ngos=ngos, user_email=user_email)
+
 
 @app.route('/signup/shopkeeper', methods=['GET', 'POST'])
 def signup_shopkeeper():
@@ -197,7 +205,36 @@ def signup_shopkeeper():
 def dashboard_user():
     if 'user_email' not in session or session.get('user_role') != 'user':
         return redirect(url_for('login'))
-    return render_template('dashboard_user.html')
+
+    user_email = session['user_email']
+
+    # 1. Stray reports this month
+    conn1 = sqlite3.connect('reports.db')
+    cursor1 = conn1.cursor()
+    cursor1.execute("SELECT COUNT(*) FROM reported_animals WHERE name = ?", (user_email,))
+    stray_reports = cursor1.fetchone()[0]
+    conn1.close()
+
+    # 2. Your Registered Pets
+    conn2 = sqlite3.connect('users.db')
+    cursor2 = conn2.cursor()
+    cursor2.execute("SELECT COUNT(*) FROM pets WHERE user_email = ?", (user_email,))
+    registered_pets = cursor2.fetchone()[0]
+    conn2.close()
+
+    # 3. Animals Helped (via Donations)
+    conn3 = sqlite3.connect('donations.db')
+    cursor3 = conn3.cursor()
+    cursor3.execute("SELECT COUNT(*) FROM donations WHERE email = ?", (user_email,))
+    animals_helped = cursor3.fetchone()[0]
+    conn3.close()
+
+    return render_template(
+        'dashboard_user.html',
+        stray_reports=stray_reports,
+        registered_pets=registered_pets,
+        animals_helped=animals_helped
+    )
 
 @app.route('/dashboard/ngo')
 def dashboard_ngo():
@@ -216,7 +253,10 @@ def dashboard_shopkeeper():
 def user_report_animal():
     if 'user_email' not in session or session.get('user_role') != 'user':
         return redirect(url_for('login'))
-    return render_template('user_report_animal.html')
+
+    user_name = session.get("user_email")  # Get name from session
+    return render_template('user_report_animal.html', user_name=user_name)
+
 
 @app.route('/user/your-pets')
 def user_your_pets():
@@ -335,7 +375,10 @@ def delete_pet(pet_id):
 def user_donate():
     if 'user_email' not in session or session.get('user_role') != 'user':
         return redirect(url_for('login'))
-    return render_template('user_donate.html')
+    
+    user_email = session.get('user_email')  # session se email lo
+    return render_template('user_donate.html', user_email=user_email)
+
 
 @app.route('/user/find-vet')
 def user_find_vet():
