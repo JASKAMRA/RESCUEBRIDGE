@@ -512,18 +512,22 @@ def ngo_donation():
 
     today = datetime.today()
     week_ago = today - timedelta(days=7)
+    print(week_ago)
     month_ago = today - timedelta(days=30)
+    print(month_ago)
 
     for row in donations:
         donation = dict(row)
         amount = float(donation.get('amount', 0))
         total_amount += amount
+        
 
         # Parse and format donation date
         try:
-            donation_date = datetime.strptime(donation['date'], '%Y-%m-%d')
+            donation_date =datetime.strptime(donation['date'], '%m/%d/%Y, %I:%M:%S %p')
             donation['formatted_date'] = donation_date.strftime('%d %b %Y')
             donation_dates.append(donation_date)
+            print(donation_date)
 
             if donation_date >= week_ago:
                 week_amount += amount

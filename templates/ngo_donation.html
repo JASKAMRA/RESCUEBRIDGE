@@ -254,14 +254,28 @@
       </div>
 
       <!-- Stats Section -->
-      <div class="donation-stats" style="margin-bottom: 20px;">
-          <h3>Donation Statistics</h3>
-          <ul>
-              <li><strong>Total Donations:</strong> ₹{{ total_amount }}</li>
-              <li><strong>Donated This Week:</strong> ₹{{ week_amount }}</li>
-              <li><strong>Donated This Month:</strong> ₹{{ month_amount }}</li>
-              <li><strong>Average Donation:</strong> ₹{{ average_donation }}</li>
-          </ul>
+      <!-- Stats Cards -->
+      <div class="stats-section">
+        <div class="stat-card">
+          <h3>Total Donations</h3>
+          <div class="amount">₹{{ total_amount }}</div>
+          <div class="period">All Time</div>
+        </div>
+        <div class="stat-card">
+          <h3>This Week</h3>
+          <div class="amount">₹{{ week_amount }}</div>
+          <div class="period">Last 7 Days</div>
+        </div>
+        <div class="stat-card">
+          <h3>This Month</h3>
+          <div class="amount">₹{{ month_amount }}</div>
+          <div class="period">Last 30 Days</div>
+        </div>
+        <div class="stat-card">
+          <h3>Avg. Donation</h3>
+          <div class="amount">₹{{ average_donation }}</div>
+          <div class="period">Per Donation</div>
+        </div>
       </div>
 
       <!-- Donations Section -->
@@ -308,12 +322,12 @@
         </table>
       </div>
     </div>
-    
+
     <script>
       // Sample donation data
       const donations = {{ donations | tojson | safe }};
       let filteredDonations = [...donations];
-      
+
 
 
       // Initialize page
