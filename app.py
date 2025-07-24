@@ -356,18 +356,18 @@ def submit_donation():
             name, email, phone, amount, purpose,
             recipient, payment_method, anonymous, date, status
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (
-        data['name'],
-        data['email'],
-        data['phone'],
-        data['amount'],
-        data['purpose'],
-        data['recipient'],
-        data['paymentMethod'],
-        int(data['anonymous']),
-        data['date'],
-        data['status']
-))
+        ''', (
+            data['name'],
+            data['email'],
+            data['phone'],
+            data['amount'],
+            data['purpose'],
+            data['recipient'],  # This should be NGO email now
+            data['paymentMethod'],
+            int(data['anonymous']),
+            data['date'],
+            data['status']
+        ))
         conn.commit()
         conn.close()
 
@@ -422,7 +422,6 @@ def submit_animal_report():
                 VALUES (?, ?)
                 ''', (report_id, image_data))
 
-
         conn.commit()
         conn.close()
 
@@ -433,48 +432,129 @@ def submit_animal_report():
         traceback.print_exc()
         return jsonify({'success': False, 'message': 'Error saving report'}), 500
 
-
 @app.route('/ngo/marketplace')
 def ngo_marketplace():
+    if 'user_email' not in session or session.get('user_role') != 'ngo':
+        return redirect(url_for('login'))
     return render_template('ngo_marketplace.html')
 
 @app.route('/ngo/medicine-planner')
 def adherence_planner():
+    if 'user_email' not in session or session.get('user_role') != 'ngo':
+        return redirect(url_for('login'))
     return render_template('adherence_planner.html')
 
 @app.route('/ngo/my_purchases')
 def ngo_my_purchases():
+    if 'user_email' not in session or session.get('user_role') != 'ngo':
+        return redirect(url_for('login'))
     return render_template('my_purchases.html')
 
 @app.route('/ngo/dailydoses')
 def dailydoses():
+    if 'user_email' not in session or session.get('user_role') != 'ngo':
+        return redirect(url_for('login'))
     return render_template('dailydoses.html')
 
 @app.route('/shopkeeper/medicine-planner')
 def medicine_planner():
+    if 'user_email' not in session or session.get('user_role') != 'shopkeeper':
+        return redirect(url_for('login'))
     return render_template('shopkeeper_list_medication.html')
 
 @app.route('/shopkeeper/request-planner')
 def request_planner():
+    if 'user_email' not in session or session.get('user_role') != 'shopkeeper':
+        return redirect(url_for('login'))
     return render_template('shopkeeper_list_requests.html')
 
+# ------------------- FIXED NGO DONATION RECORDS -------------------
 @app.route('/ngo/donation-records')
 def ngo_donation():
-    ngo_name = session.get("username", "").strip().lower()
+    if 'user_email' not in session or session.get('user_role') != 'ngo':
+        return redirect(url_for('login'))
 
-    conn = sqlite3.connect("donations.db")
-    conn.row_factory = sqlite3.Row
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM donations")
-    all_donations = cur.fetchall()
+    from datetime import datetime, timedelta
+
+    ngo_email = session['user_email']  # NGO's email from session
+
+    # Step 1: Fetch NGO name from users.db
+    conn = sqlite3.connect("users.db")
+    cursor = conn.cursor()
+    cursor.execute('SELECT "NGO Name" FROM ngos WHERE "Email" = ?', (ngo_email,))
+    ngo_result = cursor.fetchone()
     conn.close()
 
-    filtered_donations = [
-        dict(row) for row in all_donations
-        if row["recipient"].strip().lower() == ngo_name
-    ]
+    if not ngo_result:
+        flash("NGO not found.")
+        return redirect(url_for('login'))
 
-    return render_template("ngo_donation.html", donations=filtered_donations)
+    ngo_name = ngo_result[0].strip().lower()
+
+    # Step 2: Fetch all donations from donations.db for this NGO
+    conn = sqlite3.connect("donations.db")
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT * FROM donations
+        WHERE LOWER(TRIM(recipient)) = ?
+        ORDER BY date DESC
+    ''', (ngo_name,))
+    donations = cursor.fetchall()
+    conn.close()
+
+    # Step 3: Compute stats
+    total_amount = 0
+    week_amount = 0
+    month_amount = 0
+    donation_dates = []
+    donations_list = []
+
+    today = datetime.today()
+    week_ago = today - timedelta(days=7)
+    month_ago = today - timedelta(days=30)
+
+    for row in donations:
+        donation = dict(row)
+        amount = float(donation.get('amount', 0))
+        total_amount += amount
+
+        # Parse and format donation date
+        try:
+            donation_date = datetime.strptime(donation['date'], '%Y-%m-%d')
+            donation['formatted_date'] = donation_date.strftime('%d %b %Y')
+            donation_dates.append(donation_date)
+
+            if donation_date >= week_ago:
+                week_amount += amount
+            if donation_date >= month_ago:
+                month_amount += amount
+        except:
+            donation['formatted_date'] = donation.get('date', 'Unknown')
+
+        # Add default values
+        donation.setdefault('donor', donation.get('name', 'Anonymous'))
+        donation.setdefault('phone', donation.get('phone', 'N/A'))
+        donation.setdefault('amount', amount)
+        donation.setdefault('purpose', donation.get('purpose', 'General'))
+        donation.setdefault('status', donation.get('status', 'Completed'))
+        donation.setdefault('method', donation.get('payment_method', 'Online'))
+
+        donations_list.append(donation)
+
+    # Average donation
+    average_donation = round(total_amount / len(donations_list), 2) if donations_list else 0
+
+    # Step 4: Render the template with all values
+    return render_template(
+        "ngo_donation.html",
+        donations=donations_list,
+        ngo_name=ngo_name.title(),
+        total_amount=round(total_amount, 2),
+        week_amount=round(week_amount, 2),
+        month_amount=round(month_amount, 2),
+        average_donation=average_donation
+    )
 
 @app.route('/animal-image/<int:image_id>')
 def get_animal_image(image_id):
@@ -488,11 +568,13 @@ def get_animal_image(image_id):
         return result[0], 200, {'Content-Type': 'image/jpeg'}
     else:
         return '', 404
+
 @app.route('/user/users_chatbot.html')
 def user_chatbot():
     if 'user_email' not in session or session.get('user_role') != 'user':
         return redirect(url_for('login'))
     return render_template('users_chatbot.html')
+
 @app.route("/api/chat", methods=["POST"])
 def chat_api():
     if "user_email" not in session:
@@ -500,7 +582,6 @@ def chat_api():
 
     data = request.get_json()
     user_message = data.get("message", "")
-
 
     try:
         model = genai.GenerativeModel(model_name="models/gemini-1.5-flash-latest")
@@ -513,7 +594,6 @@ Site Features:
 - Manage Pets
 - Donate to NGOs
 - Find Vets
-
 
 User asked: {user_message}
 Please reply based on these features.
@@ -532,8 +612,6 @@ Please reply based on these features.
 
     except Exception as e:
         return jsonify({"error": f"Gemini error: {str(e)}"}), 500
-
-
 
 # ------------------- RUN APP -------------------
 if __name__ == '__main__':

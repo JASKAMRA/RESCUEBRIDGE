@@ -254,27 +254,14 @@
       </div>
 
       <!-- Stats Section -->
-      <div class="stats-section">
-        <div class="stat-card">
-          <h3>Total Donations</h3>
-          <div class="amount">₹2,45,680</div>
-          <div class="period">All Time</div>
-        </div>
-        <div class="stat-card">
-          <h3>This Month</h3>
-          <div class="amount">₹45,230</div>
-          <div class="period">January 2025</div>
-        </div>
-        <div class="stat-card">
-          <h3>This Week</h3>
-          <div class="amount">₹12,450</div>
-          <div class="period">Week 3</div>
-        </div>
-        <div class="stat-card">
-          <h3>Average Donation</h3>
-          <div class="amount">₹1,840</div>
-          <div class="period">Per Donor</div>
-        </div>
+      <div class="donation-stats" style="margin-bottom: 20px;">
+          <h3>Donation Statistics</h3>
+          <ul>
+              <li><strong>Total Donations:</strong> ₹{{ total_amount }}</li>
+              <li><strong>Donated This Week:</strong> ₹{{ week_amount }}</li>
+              <li><strong>Donated This Month:</strong> ₹{{ month_amount }}</li>
+              <li><strong>Average Donation:</strong> ₹{{ average_donation }}</li>
+          </ul>
       </div>
 
       <!-- Donations Section -->
