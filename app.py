@@ -616,6 +616,180 @@ Please reply based on these features.
 
     except Exception as e:
         return jsonify({"error": f"Gemini error: {str(e)}"}), 500
+    
+
+# Add these routes to your app.py file
+
+# Initialize NGO pets database on startup
+def init_ngo_pets_db():
+    conn = sqlite3.connect('ngo_pets.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS ngo_pets (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ngo_email TEXT NOT NULL,
+            name TEXT NOT NULL,
+            breed TEXT NOT NULL,
+            injury TEXT NOT NULL,
+            medication TEXT NOT NULL,
+            type TEXT NOT NULL,
+            dosage TEXT NOT NULL,
+            frequency TEXT NOT NULL,
+            days_left INTEGER NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (ngo_email) REFERENCES ngos("Email")
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+# Call this function after your existing init_db() call
+init_ngo_pets_db()
+
+# API endpoint to get NGO's pets
+@app.route('/api/ngo-pets', methods=['GET'])
+def get_ngo_pets():
+    if 'user_email' not in session or session.get('user_role') != 'ngo':
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    ngo_email = session['user_email']
+    
+    try:
+        conn = sqlite3.connect('ngo_pets.db')
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM ngo_pets WHERE ngo_email = ? ORDER BY created_at DESC', (ngo_email,))
+        pets = cursor.fetchall()
+        
+        # Convert rows to dictionaries
+        pets_list = []
+        for pet in pets:
+            pets_list.append({
+                'id': pet['id'],
+                'name': pet['name'],
+                'breed': pet['breed'],
+                'injury': pet['injury'],
+                'medication': pet['medication'],
+                'type': pet['type'],
+                'dosage': pet['dosage'],
+                'frequency': pet['frequency'],
+                'daysLeft': pet['days_left']
+            })
+        
+        return jsonify(pets_list)
+        
+    except Exception as e:
+        print(f"Error fetching NGO pets: {e}")
+        return jsonify({'error': 'Database error'}), 500
+    finally:
+        if conn:
+            conn.close()
+
+# API endpoint to add a new pet for NGO
+@app.route('/api/ngo-pets', methods=['POST'])
+def add_ngo_pet():
+    if 'user_email' not in session or session.get('user_role') != 'ngo':
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    ngo_email = session['user_email']
+    data = request.get_json()
+    
+    # Validate required fields
+    required_fields = ['name', 'breed', 'injury', 'medication', 'type', 'dosage', 'frequency', 'daysLeft']
+    for field in required_fields:
+        if not data or not data.get(field):
+            return jsonify({'error': f'{field} is required'}), 400
+    
+    try:
+        conn = sqlite3.connect('ngo_pets.db')
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT INTO ngo_pets (ngo_email, name, breed, injury, medication, type, dosage, frequency, days_left)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            ngo_email,
+            data['name'],
+            data['breed'],
+            data['injury'],
+            data['medication'],
+            data['type'],
+            data['dosage'],
+            data['frequency'],
+            int(data['daysLeft'])
+        ))
+        
+        pet_id = cursor.lastrowid
+        conn.commit()
+        
+        return jsonify({'success': True, 'id': pet_id})
+        
+    except Exception as e:
+        print(f"Error adding NGO pet: {e}")
+        return jsonify({'error': 'Database error'}), 500
+    finally:
+        if conn:
+            conn.close()
+
+# API endpoint to delete an NGO pet
+@app.route('/api/ngo-pets/<int:pet_id>', methods=['DELETE'])
+def delete_ngo_pet(pet_id):
+    if 'user_email' not in session or session.get('user_role') != 'ngo':
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    ngo_email = session['user_email']
+    
+    try:
+        conn = sqlite3.connect('ngo_pets.db')
+        cursor = conn.cursor()
+        # Only allow deletion of pets belonging to the current NGO
+        cursor.execute('DELETE FROM ngo_pets WHERE id = ? AND ngo_email = ?', (pet_id, ngo_email))
+        
+        if cursor.rowcount == 0:
+            return jsonify({'error': 'Pet not found or access denied'}), 404
+            
+        conn.commit()
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        print(f"Error deleting NGO pet: {e}")
+        return jsonify({'error': 'Database error'}), 500
+    finally:
+        if conn:
+            conn.close()
+
+# API endpoint to update pet days left (for tracking)
+@app.route('/api/ngo-pets/<int:pet_id>/days', methods=['PUT'])
+def update_pet_days(pet_id):
+    if 'user_email' not in session or session.get('user_role') != 'ngo':
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    ngo_email = session['user_email']
+    data = request.get_json()
+    
+    if 'daysLeft' not in data:
+        return jsonify({'error': 'daysLeft is required'}), 400
+    
+    try:
+        conn = sqlite3.connect('ngo_pets.db')
+        cursor = conn.cursor()
+        cursor.execute('''
+            UPDATE ngo_pets 
+            SET days_left = ? 
+            WHERE id = ? AND ngo_email = ?
+        ''', (int(data['daysLeft']), pet_id, ngo_email))
+        
+        if cursor.rowcount == 0:
+            return jsonify({'error': 'Pet not found or access denied'}), 404
+            
+        conn.commit()
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        print(f"Error updating pet days: {e}")
+        return jsonify({'error': 'Database error'}), 500
+    finally:
+        if conn:
+            conn.close()
 
 # ------------------- RUN APP -------------------
 if __name__ == '__main__':

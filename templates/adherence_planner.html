@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Veterinary Prescription Planner</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NGO Prescription Planner</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/static/styles/adherence_planner.css" />
-</head>
+  </head>
 <body>
     <div class="planner-wrapper">
         <div class="planner-header">
@@ -19,14 +19,14 @@
         
         <div class="action-buttons">
             <button class="btn btn-primary" onclick="openAddModal()">➕ Add New Dog</button>
-           <button class="btn btn-secondary" onclick="window.location.href='{{ url_for('dailydoses') }}'"> 📋 Today's Doses </button>
-
-
+            <button class="btn btn-secondary" onclick="toggleTodayDoses()">📋 Today's Doses</button>
         </div>
         
         <div class="dogs-list">
             <h2 class="section-title">Current Patients</h2>
-            <div id="dogsList"></div>
+            <div id="dogsList">
+                <div class="loading">Loading pets...</div>
+            </div>
         </div>
         
         <div id="todayDoses" class="today-doses" style="display: none;">
@@ -86,47 +86,37 @@
                     <label for="daysLeft">Days Left:</label>
                     <input type="number" id="daysLeft" min="1" required>
                 </div>
-                <button type="submit" class="btn btn-primary">Add Dog</button>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">Add Dog</button>
+                </div>
             </form>
         </div>
     </div>
     
     <script>
-        let dogs = [
-            {
-                id: 1,
-                name: "Max",
-                breed: "Golden Retriever",
-                injury: "Broken leg",
-                medication: "Rimadyl",
-                type: "Tablets",
-                dosage: "2 tablets",
-                frequency: "Twice daily",
-                daysLeft: 7
-            },
-            {
-                id: 2,
-                name: "Bella",
-                breed: "German Shepherd",
-                injury: "Post-surgery recovery",
-                medication: "Tramadol",
-                type: "Tablets",
-                dosage: "1 tablet",
-                frequency: "Three times daily",
-                daysLeft: 3
-            },
-            {
-                id: 3,
-                name: "Charlie",
-                breed: "Labrador",
-                injury: "Skin infection",
-                medication: "Antibiotic injection",
-                type: "Injections",
-                dosage: "2ml",
-                frequency: "Once daily",
-                daysLeft: 14
+        let dogs = [];
+        
+        // Load pets from database on page load
+        async function loadDogs() {
+            try {
+                const response = await fetch('/api/ngo-pets');
+                if (response.ok) {
+                    dogs = await response.json();
+                    renderDogs();
+                } else {
+                    const error = await response.json();
+                    showError(error.error || 'Failed to load pets');
+                }
+            } catch (error) {
+                console.error('Error loading dogs:', error);
+                showError('Failed to load pets from database');
             }
-        ];
+        }
+        
+        function showError(message) {
+            const dogsList = document.getElementById('dogsList');
+            dogsList.innerHTML = `<div class="error">Error: ${message}</div>`;
+        }
         
         function renderDogs() {
             const dogsList = document.getElementById('dogsList');
@@ -136,6 +126,7 @@
                     <div class="empty-state">
                         <div>🐕</div>
                         <p>No dogs currently on prescription</p>
+                        <p style="font-size: 0.9rem; margin-top: 10px;">Click "Add New Dog" to get started</p>
                     </div>
                 `;
                 return;
@@ -220,21 +211,34 @@
             }
         }
         
-        function deleteDog(id) {
+        async function deleteDog(id) {
             if (confirm('Are you sure you want to delete this dog from the prescription list?')) {
-                dogs = dogs.filter(dog => dog.id !== id);
-                renderDogs();
-                if (document.getElementById('todayDoses').style.display === 'block') {
-                    renderTodayDoses();
+                try {
+                    const response = await fetch(`/api/ngo-pets/${id}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    if (response.ok) {
+                        dogs = dogs.filter(dog => dog.id !== id);
+                        renderDogs();
+                        if (document.getElementById('todayDoses').style.display === 'block') {
+                            renderTodayDoses();
+                        }
+                    } else {
+                        const error = await response.json();
+                        alert('Error: ' + (error.error || 'Failed to delete pet'));
+                    }
+                } catch (error) {
+                    console.error('Error deleting dog:', error);
+                    alert('Failed to delete pet');
                 }
             }
         }
         
-        document.getElementById('addDogForm').addEventListener('submit', function(e) {
+        document.getElementById('addDogForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const newDog = {
-                id: Date.now(),
                 name: document.getElementById('dogName').value,
                 breed: document.getElementById('dogBreed').value,
                 injury: document.getElementById('injury').value,
@@ -245,12 +249,32 @@
                 daysLeft: parseInt(document.getElementById('daysLeft').value)
             };
             
-            dogs.push(newDog);
-            renderDogs();
-            closeAddModal();
-            
-            if (document.getElementById('todayDoses').style.display === 'block') {
-                renderTodayDoses();
+            try {
+                const response = await fetch('/api/ngo-pets', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(newDog)
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    newDog.id = result.id;
+                    dogs.push(newDog);
+                    renderDogs();
+                    closeAddModal();
+                    
+                    if (document.getElementById('todayDoses').style.display === 'block') {
+                        renderTodayDoses();
+                    }
+                } else {
+                    const error = await response.json();
+                    alert('Error: ' + (error.error || 'Failed to add pet'));
+                }
+            } catch (error) {
+                console.error('Error adding dog:', error);
+                alert('Failed to add pet');
             }
         });
         
@@ -262,8 +286,8 @@
             }
         }
         
-        // Initial render
-        renderDogs();
+        // Load dogs when page loads
+        document.addEventListener('DOMContentLoaded', loadDogs);
     </script>
 </body>
 </html>
