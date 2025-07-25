@@ -157,14 +157,22 @@ def signup_ngo():
     return render_template('signup_ngo.html')
 
 @app.route('/user/donate')
+@app.route('/user/donate')
 def user_donate_with_ngos():
+    if 'user_email' not in session or session.get('user_role') != 'user':
+        return redirect(url_for('login'))
+
+    user_email = session.get('user_email')
+
     conn = sqlite3.connect('users.db')
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM ngos")
     ngos = cursor.fetchall()
     conn.close()
-    return render_template('user_donate.html', ngos=ngos)
+
+    return render_template('user_donate.html', ngos=ngos, user_email=user_email)
+
 
 @app.route('/signup/shopkeeper', methods=['GET', 'POST'])
 def signup_shopkeeper():
@@ -197,7 +205,36 @@ def signup_shopkeeper():
 def dashboard_user():
     if 'user_email' not in session or session.get('user_role') != 'user':
         return redirect(url_for('login'))
-    return render_template('dashboard_user.html')
+
+    user_email = session['user_email']
+
+    # 1. Stray reports this month
+    conn1 = sqlite3.connect('reports.db')
+    cursor1 = conn1.cursor()
+    cursor1.execute("SELECT COUNT(*) FROM reported_animals WHERE name = ?", (user_email,))
+    stray_reports = cursor1.fetchone()[0]
+    conn1.close()
+
+    # 2. Your Registered Pets
+    conn2 = sqlite3.connect('users.db')
+    cursor2 = conn2.cursor()
+    cursor2.execute("SELECT COUNT(*) FROM pets WHERE user_email = ?", (user_email,))
+    registered_pets = cursor2.fetchone()[0]
+    conn2.close()
+
+    # 3. Animals Helped (via Donations)
+    conn3 = sqlite3.connect('donations.db')
+    cursor3 = conn3.cursor()
+    cursor3.execute("SELECT COUNT(*) FROM donations WHERE email = ?", (user_email,))
+    animals_helped = cursor3.fetchone()[0]
+    conn3.close()
+
+    return render_template(
+        'dashboard_user.html',
+        stray_reports=stray_reports,
+        registered_pets=registered_pets,
+        animals_helped=animals_helped
+    )
 
 @app.route('/dashboard/ngo')
 def dashboard_ngo():
@@ -216,7 +253,10 @@ def dashboard_shopkeeper():
 def user_report_animal():
     if 'user_email' not in session or session.get('user_role') != 'user':
         return redirect(url_for('login'))
-    return render_template('user_report_animal.html')
+
+    user_name = session.get("user_email")  # Get name from session
+    return render_template('user_report_animal.html', user_name=user_name)
+
 
 @app.route('/user/your-pets')
 def user_your_pets():
@@ -335,7 +375,10 @@ def delete_pet(pet_id):
 def user_donate():
     if 'user_email' not in session or session.get('user_role') != 'user':
         return redirect(url_for('login'))
-    return render_template('user_donate.html')
+    
+    user_email = session.get('user_email')  # session se email lo
+    return render_template('user_donate.html', user_email=user_email)
+
 
 @app.route('/user/find-vet')
 def user_find_vet():
@@ -356,18 +399,18 @@ def submit_donation():
             name, email, phone, amount, purpose,
             recipient, payment_method, anonymous, date, status
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (
-        data['name'],
-        data['email'],
-        data['phone'],
-        data['amount'],
-        data['purpose'],
-        data['recipient'],
-        data['paymentMethod'],
-        int(data['anonymous']),
-        data['date'],
-        data['status']
-))
+        ''', (
+            data['name'],
+            data['email'],
+            data['phone'],
+            data['amount'],
+            data['purpose'],
+            data['recipient'],  # This should be NGO email now
+            data['paymentMethod'],
+            int(data['anonymous']),
+            data['date'],
+            data['status']
+        ))
         conn.commit()
         conn.close()
 
@@ -422,7 +465,6 @@ def submit_animal_report():
                 VALUES (?, ?)
                 ''', (report_id, image_data))
 
-
         conn.commit()
         conn.close()
 
@@ -433,48 +475,133 @@ def submit_animal_report():
         traceback.print_exc()
         return jsonify({'success': False, 'message': 'Error saving report'}), 500
 
-
 @app.route('/ngo/marketplace')
 def ngo_marketplace():
+    if 'user_email' not in session or session.get('user_role') != 'ngo':
+        return redirect(url_for('login'))
     return render_template('ngo_marketplace.html')
 
 @app.route('/ngo/medicine-planner')
 def adherence_planner():
+    if 'user_email' not in session or session.get('user_role') != 'ngo':
+        return redirect(url_for('login'))
     return render_template('adherence_planner.html')
 
 @app.route('/ngo/my_purchases')
 def ngo_my_purchases():
+    if 'user_email' not in session or session.get('user_role') != 'ngo':
+        return redirect(url_for('login'))
     return render_template('my_purchases.html')
 
 @app.route('/ngo/dailydoses')
 def dailydoses():
+    if 'user_email' not in session or session.get('user_role') != 'ngo':
+        return redirect(url_for('login'))
     return render_template('dailydoses.html')
 
 @app.route('/shopkeeper/medicine-planner')
 def medicine_planner():
+    if 'user_email' not in session or session.get('user_role') != 'shopkeeper':
+        return redirect(url_for('login'))
     return render_template('shopkeeper_list_medication.html')
 
 @app.route('/shopkeeper/request-planner')
 def request_planner():
+    if 'user_email' not in session or session.get('user_role') != 'shopkeeper':
+        return redirect(url_for('login'))
     return render_template('shopkeeper_list_requests.html')
 
+# ------------------- FIXED NGO DONATION RECORDS -------------------
 @app.route('/ngo/donation-records')
 def ngo_donation():
-    ngo_name = session.get("username", "").strip().lower()
+    if 'user_email' not in session or session.get('user_role') != 'ngo':
+        return redirect(url_for('login'))
 
-    conn = sqlite3.connect("donations.db")
-    conn.row_factory = sqlite3.Row
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM donations")
-    all_donations = cur.fetchall()
+    from datetime import datetime, timedelta
+
+    ngo_email = session['user_email']  # NGO's email from session
+
+    # Step 1: Fetch NGO name from users.db
+    conn = sqlite3.connect("users.db")
+    cursor = conn.cursor()
+    cursor.execute('SELECT "NGO Name" FROM ngos WHERE "Email" = ?', (ngo_email,))
+    ngo_result = cursor.fetchone()
     conn.close()
 
-    filtered_donations = [
-        dict(row) for row in all_donations
-        if row["recipient"].strip().lower() == ngo_name
-    ]
+    if not ngo_result:
+        flash("NGO not found.")
+        return redirect(url_for('login'))
 
-    return render_template("ngo_donation.html", donations=filtered_donations)
+    ngo_name = ngo_result[0].strip().lower()
+
+    # Step 2: Fetch all donations from donations.db for this NGO
+    conn = sqlite3.connect("donations.db")
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT * FROM donations
+        WHERE LOWER(TRIM(recipient)) = ?
+        ORDER BY date DESC
+    ''', (ngo_name,))
+    donations = cursor.fetchall()
+    conn.close()
+
+    # Step 3: Compute stats
+    total_amount = 0
+    week_amount = 0
+    month_amount = 0
+    donation_dates = []
+    donations_list = []
+
+    today = datetime.today()
+    week_ago = today - timedelta(days=7)
+    
+    month_ago = today - timedelta(days=30)
+    
+
+    for row in donations:
+        donation = dict(row)
+        amount = float(donation.get('amount', 0))
+        total_amount += amount
+        
+
+        # Parse and format donation date
+        try:
+            donation_date =datetime.strptime(donation['date'], '%m/%d/%Y, %I:%M:%S %p')
+            donation['formatted_date'] = donation_date.strftime('%d %b %Y')
+            donation_dates.append(donation_date)
+           
+
+            if donation_date >= week_ago:
+                week_amount += amount
+            if donation_date >= month_ago:
+                month_amount += amount
+        except:
+            donation['formatted_date'] = donation.get('date', 'Unknown')
+
+        # Add default values
+        donation.setdefault('donor', donation.get('name', 'Anonymous'))
+        donation.setdefault('phone', donation.get('phone', 'N/A'))
+        donation.setdefault('amount', amount)
+        donation.setdefault('purpose', donation.get('purpose', 'General'))
+        donation.setdefault('status', donation.get('status', 'Completed'))
+        donation.setdefault('method', donation.get('payment_method', 'Online'))
+
+        donations_list.append(donation)
+
+    # Average donation
+    average_donation = round(total_amount / len(donations_list), 2) if donations_list else 0
+
+    # Step 4: Render the template with all values
+    return render_template(
+        "ngo_donation.html",
+        donations=donations_list,
+        ngo_name=ngo_name.title(),
+        total_amount=round(total_amount, 2),
+        week_amount=round(week_amount, 2),
+        month_amount=round(month_amount, 2),
+        average_donation=average_donation
+    )
 
 @app.route('/animal-image/<int:image_id>')
 def get_animal_image(image_id):
@@ -488,11 +615,13 @@ def get_animal_image(image_id):
         return result[0], 200, {'Content-Type': 'image/jpeg'}
     else:
         return '', 404
+
 @app.route('/user/users_chatbot.html')
 def user_chatbot():
     if 'user_email' not in session or session.get('user_role') != 'user':
         return redirect(url_for('login'))
     return render_template('users_chatbot.html')
+
 @app.route("/api/chat", methods=["POST"])
 def chat_api():
     if "user_email" not in session:
@@ -500,7 +629,6 @@ def chat_api():
 
     data = request.get_json()
     user_message = data.get("message", "")
-
 
     try:
         model = genai.GenerativeModel(model_name="models/gemini-1.5-flash-latest")
@@ -513,7 +641,6 @@ Site Features:
 - Manage Pets
 - Donate to NGOs
 - Find Vets
-
 
 User asked: {user_message}
 Please reply based on these features.
@@ -532,8 +659,180 @@ Please reply based on these features.
 
     except Exception as e:
         return jsonify({"error": f"Gemini error: {str(e)}"}), 500
+    
 
+# Add these routes to your app.py file
 
+# Initialize NGO pets database on startup
+def init_ngo_pets_db():
+    conn = sqlite3.connect('ngo_pets.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS ngo_pets (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ngo_email TEXT NOT NULL,
+            name TEXT NOT NULL,
+            breed TEXT NOT NULL,
+            injury TEXT NOT NULL,
+            medication TEXT NOT NULL,
+            type TEXT NOT NULL,
+            dosage TEXT NOT NULL,
+            frequency TEXT NOT NULL,
+            days_left INTEGER NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (ngo_email) REFERENCES ngos("Email")
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+# Call this function after your existing init_db() call
+init_ngo_pets_db()
+
+# API endpoint to get NGO's pets
+@app.route('/api/ngo-pets', methods=['GET'])
+def get_ngo_pets():
+    if 'user_email' not in session or session.get('user_role') != 'ngo':
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    ngo_email = session['user_email']
+    
+    try:
+        conn = sqlite3.connect('ngo_pets.db')
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM ngo_pets WHERE ngo_email = ? ORDER BY created_at DESC', (ngo_email,))
+        pets = cursor.fetchall()
+        
+        # Convert rows to dictionaries
+        pets_list = []
+        for pet in pets:
+            pets_list.append({
+                'id': pet['id'],
+                'name': pet['name'],
+                'breed': pet['breed'],
+                'injury': pet['injury'],
+                'medication': pet['medication'],
+                'type': pet['type'],
+                'dosage': pet['dosage'],
+                'frequency': pet['frequency'],
+                'daysLeft': pet['days_left']
+            })
+        
+        return jsonify(pets_list)
+        
+    except Exception as e:
+        print(f"Error fetching NGO pets: {e}")
+        return jsonify({'error': 'Database error'}), 500
+    finally:
+        if conn:
+            conn.close()
+
+# API endpoint to add a new pet for NGO
+@app.route('/api/ngo-pets', methods=['POST'])
+def add_ngo_pet():
+    if 'user_email' not in session or session.get('user_role') != 'ngo':
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    ngo_email = session['user_email']
+    data = request.get_json()
+    
+    # Validate required fields
+    required_fields = ['name', 'breed', 'injury', 'medication', 'type', 'dosage', 'frequency', 'daysLeft']
+    for field in required_fields:
+        if not data or not data.get(field):
+            return jsonify({'error': f'{field} is required'}), 400
+    
+    try:
+        conn = sqlite3.connect('ngo_pets.db')
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT INTO ngo_pets (ngo_email, name, breed, injury, medication, type, dosage, frequency, days_left)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            ngo_email,
+            data['name'],
+            data['breed'],
+            data['injury'],
+            data['medication'],
+            data['type'],
+            data['dosage'],
+            data['frequency'],
+            int(data['daysLeft'])
+        ))
+        
+        pet_id = cursor.lastrowid
+        conn.commit()
+        
+        return jsonify({'success': True, 'id': pet_id})
+        
+    except Exception as e:
+        print(f"Error adding NGO pet: {e}")
+        return jsonify({'error': 'Database error'}), 500
+    finally:
+        if conn:
+            conn.close()
+
+# API endpoint to delete an NGO pet
+@app.route('/api/ngo-pets/<int:pet_id>', methods=['DELETE'])
+def delete_ngo_pet(pet_id):
+    if 'user_email' not in session or session.get('user_role') != 'ngo':
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    ngo_email = session['user_email']
+    
+    try:
+        conn = sqlite3.connect('ngo_pets.db')
+        cursor = conn.cursor()
+        # Only allow deletion of pets belonging to the current NGO
+        cursor.execute('DELETE FROM ngo_pets WHERE id = ? AND ngo_email = ?', (pet_id, ngo_email))
+        
+        if cursor.rowcount == 0:
+            return jsonify({'error': 'Pet not found or access denied'}), 404
+            
+        conn.commit()
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        print(f"Error deleting NGO pet: {e}")
+        return jsonify({'error': 'Database error'}), 500
+    finally:
+        if conn:
+            conn.close()
+
+# API endpoint to update pet days left (for tracking)
+@app.route('/api/ngo-pets/<int:pet_id>/days', methods=['PUT'])
+def update_pet_days(pet_id):
+    if 'user_email' not in session or session.get('user_role') != 'ngo':
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    ngo_email = session['user_email']
+    data = request.get_json()
+    
+    if 'daysLeft' not in data:
+        return jsonify({'error': 'daysLeft is required'}), 400
+    
+    try:
+        conn = sqlite3.connect('ngo_pets.db')
+        cursor = conn.cursor()
+        cursor.execute('''
+            UPDATE ngo_pets 
+            SET days_left = ? 
+            WHERE id = ? AND ngo_email = ?
+        ''', (int(data['daysLeft']), pet_id, ngo_email))
+        
+        if cursor.rowcount == 0:
+            return jsonify({'error': 'Pet not found or access denied'}), 404
+            
+        conn.commit()
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        print(f"Error updating pet days: {e}")
+        return jsonify({'error': 'Database error'}), 500
+    finally:
+        if conn:
+            conn.close()
 
 # ------------------- RUN APP -------------------
 if __name__ == '__main__':

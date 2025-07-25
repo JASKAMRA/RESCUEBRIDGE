@@ -55,7 +55,7 @@
         top: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(0,0,0,0.4);
+        background-color: rgba(0, 0, 0, 0.4);
       }
       .modal-content {
         background-color: #fefefe;
@@ -121,7 +121,6 @@
       .submit-btn:hover {
         background-color: #388e3c;
       }
-
     </style>
   </head>
   <body>
@@ -214,7 +213,7 @@
             </div>
             <div class="form-group">
               <label for="donorEmail">Email</label>
-              <input type="email" id="donorEmail" required />
+              <input type="email" id="donorEmail" readonly required />
             </div>
             <div class="form-group">
               <label for="donorPhone">Phone Number</label>
@@ -231,8 +230,12 @@
             </div>
             <div class="form-group">
               <label
-                ><input type="checkbox" id="anonymous" onchange="toggleAnonymous()" /> Make this donation
-                anonymous</label
+                ><input
+                  type="checkbox"
+                  id="anonymous"
+                  onchange="toggleAnonymous()"
+                />
+                Make this donation anonymous</label
               >
             </div>
             <button type="submit" class="submit-btn">Proceed to Payment</button>
@@ -245,12 +248,12 @@
       let selectedAmount = 0;
       let selectedPurpose = "general";
       let selectedRecipient = "General Fund";
-      
+
       // Store original values for toggling
       let originalValues = {
-        name: '',
-        email: '',
-        phone: ''
+        name: "",
+        email: "",
+        phone: "",
       };
 
       function selectAmount(amount) {
@@ -298,6 +301,7 @@
         document.getElementById("selectedAmount").textContent = selectedAmount;
         document.getElementById("selectedPurpose").textContent =
           selectedPurpose;
+        document.getElementById("donorEmail").value = loggedUserEmail || "";
         document.getElementById("donationModal").style.display = "block";
       }
 
@@ -322,12 +326,12 @@
           originalValues.name = nameField.value;
           originalValues.email = emailField.value;
           originalValues.phone = phoneField.value;
-          
+
           // Replace with XXX
           nameField.value = "XXX";
           emailField.value = "XXX";
           phoneField.value = "XXX";
-          
+
           // Make fields readonly
           nameField.readOnly = true;
           emailField.readOnly = true;
@@ -337,7 +341,7 @@
           nameField.value = originalValues.name;
           emailField.value = originalValues.email;
           phoneField.value = originalValues.phone;
-          
+
           // Make fields editable again
           nameField.readOnly = false;
           emailField.readOnly = false;
@@ -348,14 +352,14 @@
       function closeDonationModal() {
         document.getElementById("donationModal").style.display = "none";
         document.getElementById("donationForm").reset();
-        
+
         // Reset original values
         originalValues = {
-          name: '',
-          email: '',
-          phone: ''
+          name: "",
+          email: "",
+          phone: "",
         };
-        
+
         // Make sure fields are editable
         document.getElementById("donorName").readOnly = false;
         document.getElementById("donorEmail").readOnly = false;
@@ -417,6 +421,7 @@
           closeDonationModal();
         }
       };
+      const loggedUserEmail = "{{ user_email }}";
     </script>
   </body>
 </html>

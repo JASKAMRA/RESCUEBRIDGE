@@ -1,21 +1,22 @@
 import sqlite3
 
 def init_db():
-    conn = sqlite3.connect('donations.db')
+    conn = sqlite3.connect('ngo_pets.db')
     cursor = conn.cursor()
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS donations (
+        CREATE TABLE IF NOT EXISTS ngo_pets (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT,
-            email TEXT,
-            phone TEXT,
-            amount INTEGER,
-            purpose TEXT,
-            payment_method TEXT,
-            anonymous INTEGER,
-            date TEXT,
-            status TEXT,
-            recipient TEXT
+            ngo_email TEXT NOT NULL,
+            name TEXT NOT NULL,
+            breed TEXT NOT NULL,
+            injury TEXT NOT NULL,
+            medication TEXT NOT NULL,
+            type TEXT NOT NULL,
+            dosage TEXT NOT NULL,
+            frequency TEXT NOT NULL,
+            days_left INTEGER NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (ngo_email) REFERENCES ngos("Email")
         )
     ''')
     conn.commit()
