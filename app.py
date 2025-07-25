@@ -882,6 +882,198 @@ def find_vet_nearby():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+
+# Add these functions to your app.py file
+
+# Initialize medicine database on startup
+def init_medicine_db():
+    conn = sqlite3.connect('medicine.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS medicines (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            medicine_name TEXT NOT NULL,
+            no_of_boxes INTEGER NOT NULL DEFAULT 0,
+            restock_level INTEGER NOT NULL DEFAULT 0,
+            shopkeeper_email TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (shopkeeper_email) REFERENCES shopkeepers("Email")
+        )
+    ''')
+    
+    cursor.execute('''
+        CREATE INDEX IF NOT EXISTS idx_medicine_name 
+        ON medicines(medicine_name)
+    ''')
+    
+    cursor.execute('''
+        CREATE INDEX IF NOT EXISTS idx_shopkeeper_email 
+        ON medicines(shopkeeper_email)
+    ''')
+    
+    conn.commit()
+    conn.close()
+
+# Call this function after your existing init_db() calls in app.py
+# init_medicine_db()
+
+# API endpoint to get shopkeeper's medicines
+@app.route('/api/shopkeeper-medicines', methods=['GET'])
+def get_shopkeeper_medicines():
+    if 'user_email' not in session or session.get('user_role') != 'shopkeeper':
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    shopkeeper_email = session['user_email']
+    
+    try:
+        conn = sqlite3.connect('medicine.db')
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM medicines WHERE shopkeeper_email = ? ORDER BY created_at DESC', (shopkeeper_email,))
+        medicines = cursor.fetchall()
+        
+        # Convert rows to dictionaries
+        medicines_list = []
+        for medicine in medicines:
+            medicines_list.append({
+                'id': medicine['id'],
+                'name': medicine['medicine_name'],
+                'quantity': medicine['no_of_boxes'],
+                'restockLevel': medicine['restock_level']
+            })
+        
+        return jsonify(medicines_list)
+        
+    except Exception as e:
+        print(f"Error fetching medicines: {e}")
+        return jsonify({'error': 'Database error'}), 500
+    finally:
+        if conn:
+            conn.close()
+
+# API endpoint to add a new medicine
+@app.route('/api/shopkeeper-medicines', methods=['POST'])
+def add_shopkeeper_medicine():
+    if 'user_email' not in session or session.get('user_role') != 'shopkeeper':
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    shopkeeper_email = session['user_email']
+    data = request.get_json()
+    
+    # Validate required fields
+    if not data or not data.get('name'):
+        return jsonify({'error': 'Medicine name is required'}), 400
+    
+    # Check if medicine already exists for this shopkeeper
+    try:
+        conn = sqlite3.connect('medicine.db')
+        cursor = conn.cursor()
+        
+        # Check for duplicate
+        cursor.execute('''
+            SELECT id FROM medicines 
+            WHERE LOWER(medicine_name) = LOWER(?) AND shopkeeper_email = ?
+        ''', (data['name'], shopkeeper_email))
+        
+        if cursor.fetchone():
+            return jsonify({'error': 'This medicine already exists in your inventory'}), 400
+        
+        # Insert new medicine
+        cursor.execute('''
+            INSERT INTO medicines (medicine_name, no_of_boxes, restock_level, shopkeeper_email)
+            VALUES (?, ?, ?, ?)
+        ''', (
+            data['name'],
+            int(data.get('quantity', 0)),
+            int(data.get('restockLevel', 5)),
+            shopkeeper_email
+        ))
+        
+        medicine_id = cursor.lastrowid
+        conn.commit()
+        
+        return jsonify({'success': True, 'id': medicine_id})
+        
+    except Exception as e:
+        print(f"Error adding medicine: {e}")
+        return jsonify({'error': 'Database error'}), 500
+    finally:
+        if conn:
+            conn.close()
+
+# API endpoint to update medicine quantity
+@app.route('/api/shopkeeper-medicines/<int:medicine_id>/quantity', methods=['PUT'])
+def update_medicine_quantity(medicine_id):
+    if 'user_email' not in session or session.get('user_role') != 'shopkeeper':
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    shopkeeper_email = session['user_email']
+    data = request.get_json()
+    
+    if 'change' not in data:
+        return jsonify({'error': 'Change value is required'}), 400
+    
+    try:
+        conn = sqlite3.connect('medicine.db')
+        cursor = conn.cursor()
+        
+        # Get current quantity
+        cursor.execute('''
+            SELECT no_of_boxes FROM medicines 
+            WHERE id = ? AND shopkeeper_email = ?
+        ''', (medicine_id, shopkeeper_email))
+        
+        result = cursor.fetchone()
+        if not result:
+            return jsonify({'error': 'Medicine not found or access denied'}), 404
+        
+        current_quantity = result[0]
+        new_quantity = max(0, current_quantity + int(data['change']))
+        
+        # Update quantity
+        cursor.execute('''
+            UPDATE medicines 
+            SET no_of_boxes = ? 
+            WHERE id = ? AND shopkeeper_email = ?
+        ''', (new_quantity, medicine_id, shopkeeper_email))
+        
+        conn.commit()
+        return jsonify({'success': True, 'newQuantity': new_quantity})
+        
+    except Exception as e:
+        print(f"Error updating medicine quantity: {e}")
+        return jsonify({'error': 'Database error'}), 500
+    finally:
+        if conn:
+            conn.close()
+
+# API endpoint to delete a medicine
+@app.route('/api/shopkeeper-medicines/<int:medicine_id>', methods=['DELETE'])
+def delete_shopkeeper_medicine(medicine_id):
+    if 'user_email' not in session or session.get('user_role') != 'shopkeeper':
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    shopkeeper_email = session['user_email']
+    
+    try:
+        conn = sqlite3.connect('medicine.db')
+        cursor = conn.cursor()
+        # Only allow deletion of medicines belonging to the current shopkeeper
+        cursor.execute('DELETE FROM medicines WHERE id = ? AND shopkeeper_email = ?', (medicine_id, shopkeeper_email))
+        
+        if cursor.rowcount == 0:
+            return jsonify({'error': 'Medicine not found or access denied'}), 404
+            
+        conn.commit()
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        print(f"Error deleting medicine: {e}")
+        return jsonify({'error': 'Database error'}), 500
+    finally:
+        if conn:
+            conn.close()
 
  
 # ------------------- RUN APP -------------------
