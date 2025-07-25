@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, j
 import sqlite3
 import google.generativeai as genai
 from dotenv import load_dotenv
+import requests
 import os
 load_dotenv()
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
@@ -834,6 +835,55 @@ def update_pet_days(pet_id):
         if conn:
             conn.close()
 
+
+
+@app.route('/api/find-vet', methods=['GET'])
+def find_vet_nearby():
+    pincode = request.args.get('pincode')
+    radius = request.args.get('radius')  # in meters
+    api_key = os.getenv("GOOGLE_MAPS_API_KEY")
+
+    if not pincode or not radius:
+        return jsonify({"error": "Missing pincode or radius"}), 400
+
+    try:
+        # Geocode API
+        geo_url = f"https://maps.googleapis.com/maps/api/geocode/json?address={pincode}&key={api_key}"
+        geo_response = requests.get(geo_url).json()
+
+        if geo_response['status'] != 'OK':
+            return jsonify({"error": "Invalid pincode"}), 400
+
+        location = geo_response['results'][0]['geometry']['location']
+        lat, lng = location['lat'], location['lng']
+
+        # Places API
+        places_url = (
+            f"https://maps.googleapis.com/maps/api/place/nearbysearch/json"
+            f"?location={lat},{lng}&radius={radius}&type=veterinary_care&key={api_key}"
+        )
+        places_response = requests.get(places_url).json()
+
+        if places_response['status'] != 'OK':
+            return jsonify({"error": "Failed to fetch places"}), 500
+
+        vets = [
+            {
+                "name": place.get("name"),
+                "address": place.get("vicinity"),
+                "rating": place.get("rating"),
+                "location": place.get("geometry", {}).get("location", {}),
+                "place_id": place.get("place_id")
+            }
+            for place in places_response.get("results", [])
+        ]
+
+        return jsonify({"results": vets})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+ 
 # ------------------- RUN APP -------------------
 if __name__ == '__main__':
     app.run(debug=True)
