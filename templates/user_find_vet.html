@@ -1,203 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Find Veterinarian</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="/static/styles/user_find_vet.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Find Veterinarian</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/static/styles/user_find_vet.css" />
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🏥 Find Veterinarian</h1>
-            <p>Locate nearby veterinary clinics and emergency services</p>
-            <a href="{{ url_for('dashboard_user') }}" class="back-btn">← Back to Dashboard</a>
-        </div>
-
-        <div class="search-section">
-            <div class="search-bar">
-                <input type="text" id="locationSearch" placeholder="Enter your location or pin code">
-                <button onclick="searchVets()">🔍 Search</button>
-            </div>
-            <div class="filter-options">
-                <select id="serviceFilter">
-                    <option value="">All Services</option>
-                    <option value="emergency">Emergency Care</option>
-                    <option value="general">General Checkup</option>
-                    <option value="surgery">Surgery</option>
-                    <option value="vaccination">Vaccination</option>
-                </select>
-                <select id="distanceFilter">
-                    <option value="">Any Distance</option>
-                    <option value="2">Within 2 km</option>
-                    <option value="5">Within 5 km</option>
-                    <option value="10">Within 10 km</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="emergency-section">
-            <div class="emergency-card">
-                <div class="emergency-icon">🚨</div>
-                <div class="emergency-content">
-                    <h3>Pet Emergency?</h3>
-                    <p>Call 24/7 Emergency Helpline</p>
-                    <button class="emergency-btn" onclick="callEmergency()">Call Now: 1800-XXX-XXXX</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="vets-list" id="vetsList">
-            <!-- Vets will be loaded here -->
-        </div>
+  <div class="container">
+    <div class="header">
+      <h1>🏥 Find Veterinarian</h1>
+      <p>Locate nearby veterinary clinics and emergency services</p>
+      <a href="{{ url_for('dashboard_user') }}" class="back-btn">← Back to Dashboard</a>
     </div>
 
-    <script>
-        const vetsData = [
-            {
-                id: 1,
-                name: "City Pet Hospital",
-                address: "123 Main Street, Delhi",
-                phone: "+91 98765 43210",
-                distance: "1.2 km",
-                rating: 4.8,
-                services: ["emergency", "surgery", "general"],
-                hours: "24/7",
-                emergency: true
-            },
-            {
-                id: 2,
-                name: "Animal Care Clinic",
-                address: "456 Park Road, Delhi",
-                phone: "+91 87654 32109",
-                distance: "2.5 km",
-                rating: 4.6,
-                services: ["general", "vaccination"],
-                hours: "9 AM - 8 PM",
-                emergency: false
-            },
-            {
-                id: 3,
-                name: "Pet Wellness Center",
-                address: "789 Green Avenue, Delhi",
-                phone: "+91 76543 21098",
-                distance: "3.1 km",
-                rating: 4.7,
-                services: ["general", "surgery", "vaccination"],
-                hours: "8 AM - 10 PM",
-                emergency: false
-            },
-            {
-                id: 4,
-                name: "Emergency Animal Hospital",
-                address: "321 Hospital Lane, Delhi",
-                phone: "+91 65432 10987",
-                distance: "4.2 km",
-                rating: 4.9,
-                services: ["emergency", "surgery"],
-                hours: "24/7",
-                emergency: true
-            },
-            {
-                id: 5,
-                name: "Paws & Care Veterinary",
-                address: "654 Pet Street, Delhi",
-                phone: "+91 54321 09876",
-                distance: "5.8 km",
-                rating: 4.5,
-                services: ["general", "vaccination"],
-                hours: "10 AM - 7 PM",
-                emergency: false
-            }
-        ];
+    <div class="search-section">
+      <div class="search-bar">
+        <input type="text" id="pincodeInput" placeholder="Enter your Pin Code" />
+        <button onclick="searchVets()">🔍 Search</button>
+      </div>
+      <div class="filter-options">
+        <select id="distanceFilter">
+          <option value="2000">Within 2 km</option>
+          <option value="5000" selected>Within 5 km</option>
+          <option value="10000">Within 10 km</option>
+        </select>
+      </div>
+    </div>
 
-        let filteredVets = [...vetsData];
+    <!-- 🔹 SCROLLABLE BOX TO DISPLAY FETCHED VETS -->
+    <div id="vetsList" style="max-height: 300px; overflow-y: auto; margin-top: 15px; padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
+      <p>🔍 Enter a pincode and search to see nearby veterinarians...</p>
+    </div>
+  </div>
 
-        function renderVets() {
-            const vetsList = document.getElementById('vetsList');
-            
-            if (filteredVets.length === 0) {
-                vetsList.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-icon">🏥</div>
-                        <h3>No veterinarians found</h3>
-                        <p>Try adjusting your search criteria</p>
-                    </div>
-                `;
-                return;
-            }
+  <script>
+    function renderVets(vets) {
+      const vetsList = document.getElementById('vetsList');
+      if (!vets || vets.length === 0) {
+        vetsList.innerHTML = `
+          <div style="text-align:center; padding:10px;">
+            <h3>❌ No veterinarians found</h3>
+            <p>Try a different pincode or increase the search radius.</p>
+          </div>`;
+        return;
+      }
 
-            vetsList.innerHTML = filteredVets.map(vet => `
-                <div class="vet-card">
-                    <div class="vet-header">
-                        <div class="vet-info">
-                            <h3>${vet.name}</h3>
-                            ${vet.emergency ? '<span class="emergency-badge">24/7 Emergency</span>' : ''}
-                            <div class="rating">
-                                <span class="stars">${'⭐'.repeat(Math.floor(vet.rating))}</span>
-                                <span class="rating-number">${vet.rating}</span>
-                            </div>
-                        </div>
-                        <div class="distance">${vet.distance}</div>
-                    </div>
-                    
-                    <div class="vet-details">
-                        <p class="address">📍 ${vet.address}</p>
-                        <p class="hours">🕒 ${vet.hours}</p>
-                        <div class="services">
-                            <strong>Services:</strong>
-                            <div class="service-tags">
-                                ${vet.services.map(service => `<span class="service-tag">${getServiceName(service)}</span>`).join('')}
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="vet-actions">
-                        <button class="call-btn" onclick="callVet('${vet.phone}')">📞 Call</button>
-                        <button class="direction-btn" onclick="getDirections('${vet.address}')">🗺️ Directions</button>
-                        <button class="book-btn" onclick="bookAppointment(${vet.id})">📅 Book</button>
-                    </div>
-                </div>
-            `).join('');
+      vetsList.innerHTML = vets.map((vet, index) => `
+        <div class="vet-card" style="padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:8px;">
+          <h3>${vet.name}</h3>
+          <p>📍 ${vet.address}</p>
+          <p>⭐ Rating: ${vet.rating || "N/A"}</p>
+          <button onclick="window.open('https://www.google.com/maps/place/?q=place_id:${vet.place_id}', '_blank')">📍 View on Map</button>
+        </div>
+      `).join('');
+    }
+
+    // 🔹 Fetch data from Flask backend instead of frontend API
+    async function searchVets() {
+      const pincode = document.getElementById("pincodeInput").value.trim();
+      const radius = document.getElementById("distanceFilter").value;
+
+      if (!pincode) {
+        alert("Please enter a pincode.");
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/find-vet?pincode=${pincode}&radius=${radius}`);
+        const data = await response.json();
+
+        if (data.results) {
+          renderVets(data.results);
+        } else {
+          renderVets([]);
         }
-
-        function getServiceName(service) {
-            const services = {
-                emergency: 'Emergency',
-                general: 'General Care',
-                surgery: 'Surgery',
-                vaccination: 'Vaccination'
-            };
-            return services[service] || service;
-        }
-
-        function searchVets() {
-            const location = document.getElementById('locationSearch').value.toLowerCase();
-            const serviceFilter = document.getElementById('serviceFilter').value;
-            const distanceFilter = document.getElementById('distanceFilter').value;
-
-            filteredVets = vetsData.filter(vet => {
-                const matchesLocation = !location || vet.address.toLowerCase().includes(location);
-                const matchesService = !serviceFilter || vet.services.includes(serviceFilter);
-                const matchesDistance = !distanceFilter || parseFloat(vet.distance) <= parseFloat(distanceFilter);
-                
-                return matchesLocation && matchesService && matchesDistance;
-            });
-
-            renderVets();
-        }
-
-        function callVet(phone) {
-            window.open(`tel:${phone}`);
-        }
-
-        function getDirections(address) {
-    const encodedAddress = encodeURIComponent(address);
-    window.open(`https://maps.google.com/maps?q=${encodedAddress}`);
-}
-
-        
+      } catch (error) {
+        console.error("Error fetching vets:", error);
+        renderVets([]);
+      }
+    }
+  </script>
+</body>
+</html>
