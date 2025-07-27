@@ -15,18 +15,18 @@
       <header class="dashboard-header">
         <h1 class="dashboard-title">NGO Operations Dashboard</h1>
         <p class="dashboard-subtitle">
-          Welcome back! Here’s your daily overview.
+          Welcome back! Here's your daily overview.
         </p>
       </header>
 
       <section class="stats-section">
         <div class="stat-box">
           <h2>Reports Handled</h2>
-          <p>42 <span>This Month</span></p>
+          <p>{{ reports_handled_count }} <span>This Month</span></p>
         </div>
         <div class="stat-box">
           <h2>Registered Animals</h2>
-          <p>187 <span>Total</span></p>
+          <p>{{ registered_animals_count }} <span>Total</span></p>
         </div>
       </section>
 
@@ -57,12 +57,6 @@
     <p>No reports currently being handled.</p>
   {% endif %}
 </section>
-
-
-
-
- 
-
 
     </div>
   </body>

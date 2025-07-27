@@ -1185,26 +1185,49 @@ def dashboard_ngo():
     ngo_email = session['user_email']
     
     try:
+        # Get reports handled count
         conn = sqlite3.connect('reports.db')
-        conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
-        
-        # Get reports currently handled by this NGO
         cursor.execute('''
+            SELECT COUNT(*) FROM reported_animals 
+            WHERE handled_by = ? AND status = 'Accepted'
+        ''', (ngo_email,))
+        reports_handled_count = cursor.fetchone()[0]
+        conn.close()
+        
+        # Get registered animals count
+        conn2 = sqlite3.connect('ngo_pets.db')
+        cursor2 = conn2.cursor()
+        cursor2.execute('''
+            SELECT COUNT(*) FROM ngo_pets 
+            WHERE ngo_email = ?
+        ''', (ngo_email,))
+        registered_animals_count = cursor2.fetchone()[0]
+        conn2.close()
+        
+        # Get reports for display (currently handled)
+        conn3 = sqlite3.connect('reports.db')
+        conn3.row_factory = sqlite3.Row
+        cursor3 = conn3.cursor()
+        cursor3.execute('''
             SELECT * FROM reported_animals 
             WHERE handled_by = ? AND status = 'Accepted'
         ''', (ngo_email,))
+        reports = cursor3.fetchall()
+        conn3.close()
         
-        reports = cursor.fetchall()
-        conn.close()
-        
-        return render_template('dashboard_ngo.html', reports=reports)
+        return render_template('dashboard_ngo.html', 
+                             reports=reports,
+                             reports_handled_count=reports_handled_count,
+                             registered_animals_count=registered_animals_count)
         
     except Exception as e:
         print(f"Error in NGO dashboard: {e}")
-        # If there's any error, just return empty reports
-        return render_template('dashboard_ngo.html', reports=[])
-
+        # If there's any error, return with default values
+        return render_template('dashboard_ngo.html', 
+                             reports=[],
+                             reports_handled_count=0,
+                             registered_animals_count=0)
 # 3. Fix the emergency_reports route (replace the existing one)
 @app.route('/ngo/emergency-reports')
 def emergency_reports():
