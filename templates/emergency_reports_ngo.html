@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Emergency Reports - NGO</title>
+  <link rel="stylesheet" href="/static/styles/ngo_dashboard.css" />
+</head>
+<body>
+  <div class="dashboard-wrapper">
+    <header class="dashboard-header">
+      <h1 class="dashboard-title">🚨 Emergency Reports</h1>
+      <p class="dashboard-subtitle">Below are the active emergency reports requiring attention.</p>
+    </header>
+
+  {% if emergency_reports %}
+    {% for report in emergency_reports %}
+    <div style="border: 1px solid #ccc; padding: 15px; margin-bottom: 15px; border-radius: 10px; background-color: #f9f9f9;">
+      <p><strong>ID:</strong> {{ report['id'] }}</p>
+      <p><strong>Animal Type:</strong> {{ report['animal_type'] }}</p>
+      <p><strong>Condition:</strong> {{ report['condition'] }}</p>
+      <p><strong>Description:</strong> {{ report['description'] }}</p>
+      <p><strong>Phone:</strong> {{ report['phone'] }}</p>
+      <p><strong>Name:</strong> {{ report['name'] }}</p>
+      <p><strong>Date:</strong> {{ report['date'] }}</p>
+      <p><strong>Status:</strong> {{ report['status'] }}</p>
+
+    <form action="{{ url_for('accept_report', report_id=report['id']) }}" method="POST" style="margin-top: 10px;">
+      <button type="submit">✅ Accept</button>
+    </form>
+  </div>
+{% endfor %}
+
+
+    {% else %}
+      <p style="text-align: center; margin-top: 30px;">No emergency reports available right now.</p>
+    {% endif %}
+  </div>
+</body>
+</html>

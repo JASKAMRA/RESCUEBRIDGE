@@ -239,11 +239,6 @@ def dashboard_user():
         animals_helped=animals_helped
     )
 
-@app.route('/dashboard/ngo')
-def dashboard_ngo():
-    if 'user_email' not in session or session.get('user_role') != 'ngo':
-        return redirect(url_for('login'))
-    return render_template('dashboard_ngo.html')
 
 @app.route('/dashboard/shopkeeper')
 def dashboard_shopkeeper():
@@ -1182,7 +1177,84 @@ def get_shopkeepers():
     
     return jsonify(result)
 
+@app.route('/dashboard/ngo')
+def dashboard_ngo():
+    if 'user_email' not in session or session.get('user_role') != 'ngo':
+        return redirect(url_for('login'))
+    
+    ngo_email = session['user_email']
+    
+    try:
+        conn = sqlite3.connect('reports.db')
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        # Get reports currently handled by this NGO
+        cursor.execute('''
+            SELECT * FROM reported_animals 
+            WHERE handled_by = ? AND status = 'Accepted'
+        ''', (ngo_email,))
+        
+        reports = cursor.fetchall()
+        conn.close()
+        
+        return render_template('dashboard_ngo.html', reports=reports)
+        
+    except Exception as e:
+        print(f"Error in NGO dashboard: {e}")
+        # If there's any error, just return empty reports
+        return render_template('dashboard_ngo.html', reports=[])
 
+# 3. Fix the emergency_reports route (replace the existing one)
+@app.route('/ngo/emergency-reports')
+def emergency_reports():
+    if 'user_email' not in session or session.get('user_role') != 'ngo':
+        return redirect(url_for('login'))
+    
+    try:
+        conn = sqlite3.connect('reports.db')
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        # Get all unhandled reports
+        cursor.execute("SELECT * FROM reported_animals WHERE status = 'Submitted' ORDER BY date DESC")
+        reports = cursor.fetchall()
+        conn.close()
+        
+        return render_template('emergency_reports_ngo.html', emergency_reports=reports)
+        
+    except Exception as e:
+        print(f"Error fetching emergency reports: {e}")
+        # If there's any error, return empty reports
+        return render_template('emergency_reports_ngo.html', emergency_reports=[])
+
+# 4. Fix the accept_report route (replace the existing one)
+@app.route('/ngo/accept-report/<int:report_id>', methods=['POST'])
+def accept_report(report_id):
+    if 'user_email' not in session or session.get('user_role') != 'ngo':
+        return redirect(url_for('login'))
+
+    ngo_email = session['user_email']
+    
+    try:
+        conn = sqlite3.connect('reports.db')
+        cursor = conn.cursor()
+        
+        # Update the report status and assign to NGO
+        cursor.execute('''
+            UPDATE reported_animals 
+            SET status = 'Accepted', handled_by = ? 
+            WHERE id = ?
+        ''', (ngo_email, report_id))
+        
+        conn.commit()
+        conn.close()
+        
+        return redirect(url_for('emergency_reports'))
+        
+    except Exception as e:
+        print(f"Error accepting report: {e}")
+        return redirect(url_for('emergency_reports'))
  
 # ------------------- RUN APP -------------------
 if __name__ == '__main__':

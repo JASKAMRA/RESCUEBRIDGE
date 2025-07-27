@@ -30,34 +30,40 @@
         </div>
       </section>
 
-      <nav class="dashboard-nav">
-        <button onclick="window.location.href='{{ url_for('ngo_donation') }}'">
-          Donation Records
-        </button>
-        <a href="{{ url_for('ngo_marketplace') }}"
-          ><button>Marketplace</button></a
-        >
-        <a href="{{ url_for('adherence_planner') }}"
-          ><button>Medicine Adherence Planner</button></a
-        >
-      </nav>
+<nav class="dashboard-nav">
+  <button onclick="window.location.href='{{ url_for('ngo_donation') }}'">
+    Donation Records
+  </button>
+  <a href="{{ url_for('ngo_marketplace') }}">
+    <button>Marketplace</button>
+  </a>
+  <a href="{{ url_for('adherence_planner') }}">
+    <button>Medicine Adherence Planner</button>
+  </a>
+  <button onclick="window.location.href='{{ url_for('emergency_reports') }}'">
+    Emergency Reports
+  </button>
+</nav>
 
-      <section class="report-section">
-        <h2 class="section-title">Currently Handled Report</h2>
-        <div class="report-card">
-          <div class="report-info">
-            <p><strong>Phone:</strong> +91 98765 43210</p>
-            <p><strong>Location:</strong> Sector 23, Gurugram</p>
-            <p><strong>Place:</strong> Near City Park</p>
-            <p><strong>Injury Type:</strong> Leg Fracture</p>
-            <p><strong>Time Since Report:</strong> 2 hours</p>
-          </div>
-          <div class="report-images">
-            <img src="https://via.placeholder.com/120" alt="Injury 1" />
-            <img src="https://via.placeholder.com/120" alt="Injury 2" />
-          </div>
-        </div>
-      </section>
+<section class="report-section">
+  <h2>Currently Handled Reports</h2>
+  {% if reports %}
+    <ul>
+      {% for report in reports %}
+        <li>Report ID: {{ report[0] }} | Handled By: {{ report[-1] }}</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No reports currently being handled.</p>
+  {% endif %}
+</section>
+
+
+
+
+ 
+
+
     </div>
   </body>
 </html>
