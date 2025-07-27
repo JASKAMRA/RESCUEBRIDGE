@@ -1,225 +1,264 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Medicine Planner</title>
-    <link rel="stylesheet" href="../static/styles/shopkeeper_list_medication.css">
-</head>
-<body>
+    <link
+      rel="stylesheet"
+      href="../static/styles/shopkeeper_list_medication.css"
+    />
+  </head>
+  <body>
     <div class="container">
-        <div class="header">
-            <h1 class="page-title">Medicine Planner</h1>
-        </div>
+      <div class="header">
+        <h1 class="page-title">Medicine Planner</h1>
+      </div>
 
-        <!-- Error Message Display -->
-        <div id="errorMessage" class="error-message" style="display: none;"></div>
+      <!-- Error Message Display -->
+      <div id="errorMessage" class="error-message" style="display: none"></div>
 
-        <!-- Restock Alert -->
-        <div id="restockAlert" class="restock-alert" style="display: none;">
-            <div class="restock-title">⚠ Medicines to Restock</div>
-            <div id="restockList"></div>
-        </div>
+      <!-- Restock Alert -->
+      <div id="restockAlert" class="restock-alert" style="display: none">
+        <div class="restock-title">⚠ Medicines to Restock</div>
+        <div id="restockList"></div>
+      </div>
 
-        <!-- Add Medicine Form -->
-        <div class="add-medicine-form">
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">Medicine Name</label>
-                    <input type="text" class="form-input" id="medicineName" placeholder="Enter medicine name">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Quantity (Boxes)</label>
-                    <input type="number" class="form-input" id="medicineQuantity" placeholder="0" min="0">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Restock Level</label>
-                    <input type="number" class="form-input" id="restockLevel" placeholder="5" min="1">
-                </div>
-            </div>
-            <div class="form-button-row">
-                <button class="btn-primary" onclick="addMedicine()">Add Medicine</button>
-            </div>
+      <!-- Add Medicine Form -->
+      <div class="add-medicine-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Medicine Name</label>
+            <input
+              type="text"
+              class="form-input"
+              id="medicineName"
+              placeholder="Enter medicine name"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Quantity (Boxes)</label>
+            <input
+              type="number"
+              class="form-input"
+              id="medicineQuantity"
+              placeholder="0"
+              min="0"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Restock Level</label>
+            <input
+              type="number"
+              class="form-input"
+              id="restockLevel"
+              placeholder="5"
+              min="1"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Price (₹)</label>
+            <input
+              type="number"
+              class="form-input"
+              id="medicinePrice"
+              placeholder="e.g. 20"
+              min="0"
+              step="0.01"
+            />
+          </div>
         </div>
+        <div class="form-button-row">
+          <button class="btn-primary" onclick="addMedicine()">
+            Add Medicine
+          </button>
+        </div>
+      </div>
 
-        <!-- Medicine List -->
-        <div class="medicine-list">
-            <h2 class="section-title">Medicine Inventory</h2>
-            <div id="medicineContainer">
-                <div class="loading-state">
-                    Loading medicines...
-                </div>
-            </div>
+      <!-- Medicine List -->
+      <div class="medicine-list">
+        <h2 class="section-title">Medicine Inventory</h2>
+        <div id="medicineContainer">
+          <div class="loading-state">Loading medicines...</div>
         </div>
+      </div>
     </div>
 
     <script>
-        let medicines = [];
+      let medicines = [];
 
-        // Load medicines from database on page load
-        async function loadMedicines() {
-            try {
-                const response = await fetch('/api/shopkeeper-medicines');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const data = await response.json();
-                medicines = data;
-                renderMedicines();
-                updateRestockAlert();
-            } catch (error) {
-                console.error('Error loading medicines:', error);
-                showError('Failed to load medicines. Please refresh the page.');
-            }
+      // Load medicines from database on page load
+      async function loadMedicines() {
+        try {
+          const response = await fetch("/api/shopkeeper-medicines");
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          const data = await response.json();
+          medicines = data;
+          renderMedicines();
+          updateRestockAlert();
+        } catch (error) {
+          console.error("Error loading medicines:", error);
+          showError("Failed to load medicines. Please refresh the page.");
+        }
+      }
+
+      // Show error message
+      function showError(message) {
+        const errorDiv = document.getElementById("errorMessage");
+        errorDiv.textContent = message;
+        errorDiv.style.display = "block";
+        setTimeout(() => {
+          errorDiv.style.display = "none";
+        }, 5000);
+      }
+
+      // Add new medicine
+      async function addMedicine() {
+        const name = document.getElementById("medicineName").value.trim();
+        const quantity =
+          parseInt(document.getElementById("medicineQuantity").value) || 0;
+        const restockLevel =
+          parseInt(document.getElementById("restockLevel").value) || 5;
+        const price =
+          parseFloat(document.getElementById("medicinePrice").value) || 0;
+
+        if (!name) {
+          showError("Please enter a medicine name");
+          return;
         }
 
-        // Show error message
-        function showError(message) {
-            const errorDiv = document.getElementById('errorMessage');
-            errorDiv.textContent = message;
-            errorDiv.style.display = 'block';
-            setTimeout(() => {
-                errorDiv.style.display = 'none';
-            }, 5000);
+        try {
+          const response = await fetch("/api/shopkeeper-medicines", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              name: name,
+              quantity: quantity,
+              restockLevel: restockLevel,
+              price: price,
+            }),
+          });
+
+          const result = await response.json();
+
+          if (!response.ok) {
+            throw new Error(result.error || "Failed to add medicine");
+          }
+
+          // Add to local array
+          const newMedicine = {
+            id: result.id,
+            name: name,
+            quantity: quantity,
+            restockLevel: restockLevel,
+          };
+          medicines.push(newMedicine);
+
+          clearForm();
+          renderMedicines();
+          updateRestockAlert();
+        } catch (error) {
+          console.error("Error adding medicine:", error);
+          showError(error.message);
+        }
+      }
+
+      function clearForm() {
+        document.getElementById("medicineName").value = "";
+        document.getElementById("medicineQuantity").value = "";
+        document.getElementById("restockLevel").value = "";
+        document.getElementById("medicinePrice").value = "";
+      }
+
+      // Delete medicine
+      async function deleteMedicine(id) {
+        if (!confirm("Are you sure you want to delete this medicine?")) {
+          return;
         }
 
-        // Add new medicine
-        async function addMedicine() {
-            const name = document.getElementById('medicineName').value.trim();
-            const quantity = parseInt(document.getElementById('medicineQuantity').value) || 0;
-            const restockLevel = parseInt(document.getElementById('restockLevel').value) || 5;
+        try {
+          const response = await fetch(`/api/shopkeeper-medicines/${id}`, {
+            method: "DELETE",
+          });
 
-            if (!name) {
-                showError('Please enter a medicine name');
-                return;
+          if (!response.ok) {
+            const result = await response.json();
+            throw new Error(result.error || "Failed to delete medicine");
+          }
+
+          // Remove from local array
+          medicines = medicines.filter((med) => med.id !== id);
+          renderMedicines();
+          updateRestockAlert();
+        } catch (error) {
+          console.error("Error deleting medicine:", error);
+          showError(error.message);
+        }
+      }
+
+      // Adjust quantity
+      async function adjustQuantity(id, change) {
+        try {
+          const response = await fetch(
+            `/api/shopkeeper-medicines/${id}/quantity`,
+            {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                change: change,
+              }),
             }
+          );
 
-            try {
-                const response = await fetch('/api/shopkeeper-medicines', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        name: name,
-                        quantity: quantity,
-                        restockLevel: restockLevel
-                    })
-                });
+          if (!response.ok) {
+            const result = await response.json();
+            throw new Error(result.error || "Failed to update quantity");
+          }
 
-                const result = await response.json();
+          const result = await response.json();
 
-                if (!response.ok) {
-                    throw new Error(result.error || 'Failed to add medicine');
-                }
+          // Update local array
+          const medicine = medicines.find((med) => med.id === id);
+          if (medicine) {
+            medicine.quantity = result.newQuantity;
+            renderMedicines();
+            updateRestockAlert();
+          }
+        } catch (error) {
+          console.error("Error updating quantity:", error);
+          showError(error.message);
+        }
+      }
 
-                // Add to local array
-                const newMedicine = {
-                    id: result.id,
-                    name: name,
-                    quantity: quantity,
-                    restockLevel: restockLevel
-                };
-                medicines.push(newMedicine);
+      function getStatus(medicine) {
+        if (medicine.quantity === 0) {
+          return { class: "status-restock", text: "Out of Stock" };
+        } else if (medicine.quantity <= medicine.restockLevel) {
+          return { class: "status-low", text: "Low Stock" };
+        } else {
+          return { class: "status-good", text: "In Stock" };
+        }
+      }
 
-                clearForm();
-                renderMedicines();
-                updateRestockAlert();
+      function renderMedicines() {
+        const container = document.getElementById("medicineContainer");
 
-            } catch (error) {
-                console.error('Error adding medicine:', error);
-                showError(error.message);
-            }
+        if (medicines.length === 0) {
+          container.innerHTML =
+            '<div class="empty-state">No medicines added yet. Add your first medicine above!</div>';
+          return;
         }
 
-        function clearForm() {
-            document.getElementById('medicineName').value = '';
-            document.getElementById('medicineQuantity').value = '';
-            document.getElementById('restockLevel').value = '';
-        }
-
-        // Delete medicine
-        async function deleteMedicine(id) {
-            if (!confirm('Are you sure you want to delete this medicine?')) {
-                return;
-            }
-
-            try {
-                const response = await fetch(`/api/shopkeeper-medicines/${id}`, {
-                    method: 'DELETE'
-                });
-
-                if (!response.ok) {
-                    const result = await response.json();
-                    throw new Error(result.error || 'Failed to delete medicine');
-                }
-
-                // Remove from local array
-                medicines = medicines.filter(med => med.id !== id);
-                renderMedicines();
-                updateRestockAlert();
-
-            } catch (error) {
-                console.error('Error deleting medicine:', error);
-                showError(error.message);
-            }
-        }
-
-        // Adjust quantity
-        async function adjustQuantity(id, change) {
-            try {
-                const response = await fetch(`/api/shopkeeper-medicines/${id}/quantity`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        change: change
-                    })
-                });
-
-                if (!response.ok) {
-                    const result = await response.json();
-                    throw new Error(result.error || 'Failed to update quantity');
-                }
-
-                const result = await response.json();
-
-                // Update local array
-                const medicine = medicines.find(med => med.id === id);
-                if (medicine) {
-                    medicine.quantity = result.newQuantity;
-                    renderMedicines();
-                    updateRestockAlert();
-                }
-
-            } catch (error) {
-                console.error('Error updating quantity:', error);
-                showError(error.message);
-            }
-        }
-
-        function getStatus(medicine) {
-            if (medicine.quantity === 0) {
-                return { class: 'status-restock', text: 'Out of Stock' };
-            } else if (medicine.quantity <= medicine.restockLevel) {
-                return { class: 'status-low', text: 'Low Stock' };
-            } else {
-                return { class: 'status-good', text: 'In Stock' };
-            }
-        }
-
-        function renderMedicines() {
-            const container = document.getElementById('medicineContainer');
-            
-            if (medicines.length === 0) {
-                container.innerHTML = '<div class="empty-state">No medicines added yet. Add your first medicine above!</div>';
-                return;
-            }
-
-            container.innerHTML = medicines.map(medicine => {
-                const status = getStatus(medicine);
-                return `
+        container.innerHTML = medicines
+          .map((medicine) => {
+            const status = getStatus(medicine);
+            return `
                     <div class="medicine-item">
                         <div class="medicine-name">${medicine.name}</div>
                         <div class="medicine-quantity">${medicine.quantity} boxes</div>
@@ -231,32 +270,39 @@
                         </div>
                     </div>
                 `;
-            }).join('');
+          })
+          .join("");
+      }
+
+      function updateRestockAlert() {
+        const restockMedicines = medicines.filter(
+          (med) => med.quantity <= med.restockLevel
+        );
+        const alertDiv = document.getElementById("restockAlert");
+        const listDiv = document.getElementById("restockList");
+
+        if (restockMedicines.length === 0) {
+          alertDiv.style.display = "none";
+          return;
         }
 
-        function updateRestockAlert() {
-            const restockMedicines = medicines.filter(med => med.quantity <= med.restockLevel);
-            const alertDiv = document.getElementById('restockAlert');
-            const listDiv = document.getElementById('restockList');
-
-            if (restockMedicines.length === 0) {
-                alertDiv.style.display = 'none';
-                return;
-            }
-
-            alertDiv.style.display = 'block';
-            listDiv.innerHTML = restockMedicines.map(medicine => `
+        alertDiv.style.display = "block";
+        listDiv.innerHTML = restockMedicines
+          .map(
+            (medicine) => `
                 <div class="restock-item">
                     <span>${medicine.name}</span>
                     <span>${medicine.quantity} boxes left</span>
                 </div>
-            `).join('');
-        }
+            `
+          )
+          .join("");
+      }
 
-        // Load medicines when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            loadMedicines();
-        });
+      // Load medicines when page loads
+      document.addEventListener("DOMContentLoaded", function () {
+        loadMedicines();
+      });
     </script>
-</body>
+  </body>
 </html>

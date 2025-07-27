@@ -1,74 +1,39 @@
 import sqlite3
 import os
 
-def create_medicine_database():
+def column_exists(cursor, table_name, column_name):
     """
-    Medicine database create karta hai required table ke saath
+    Checks if a column exists in the specified table.
     """
-    # Database file path
+    cursor.execute(f"PRAGMA table_info({table_name})")
+    columns = [info[1] for info in cursor.fetchall()]
+    return column_name in columns
+
+def add_price_per_column():
+    """
+    Adds 'price_per' column to medicines table if it doesn't exist.
+    """
     db_path = 'medicine.db'
     
-    # Database connection
+    if not os.path.exists(db_path):
+        print(f"❌ Database file '{db_path}' does not exist.")
+        return
+
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-    
-    # Medicine table create karna
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS medicines (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            medicine_name TEXT NOT NULL,
-            no_of_boxes INTEGER NOT NULL DEFAULT 0,
-            restock_level INTEGER NOT NULL DEFAULT 0,
-            shopkeeper_email TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (shopkeeper_email) REFERENCES shopkeepers("Email")
-        )
-    ''')
-    
-    # Index create karna faster searching ke liye
-    cursor.execute('''
-        CREATE INDEX IF NOT EXISTS idx_medicine_name 
-        ON medicines(medicine_name)
-    ''')
-    
-    cursor.execute('''
-        CREATE INDEX IF NOT EXISTS idx_shopkeeper_email 
-        ON medicines(shopkeeper_email)
-    ''')
-    
-    # Changes commit karna
-    conn.commit()
-    print(f"✅ Medicine database '{db_path}' successfully created!")
-    print("📋 Table 'medicines' with columns: id, medicine_name, no_of_boxes, restock_level, shopkeeper_email, created_at")
-    
-    # Connection close karna
+
+    if column_exists(cursor, 'medicines', 'price_per'):
+        print("ℹ️ Column 'price_per' already exists in 'medicines' table.")
+    else:
+        try:
+            cursor.execute("ALTER TABLE medicines ADD COLUMN price_per INTEGER;")
+            conn.commit()
+            print("✅ Column 'price_per' added to 'medicines' table.")
+        except sqlite3.OperationalError as e:
+            print(f"❌ Error adding column: {e}")
+
     conn.close()
 
-def check_database_exists():
-    """
-    Check karta hai ki database file exist karti hai ya nahi
-    """
-    db_path = 'medicine.db'
-    if os.path.exists(db_path):
-        print(f"📁 Database file '{db_path}' already exists")
-        return True
-    else:
-        print(f"📁 Database file '{db_path}' does not exist")
-        return False
-
 if __name__ == "__main__":
-    print("🏥 Medicine Database Initialization")
-    print("=" * 40)
-    
-    # Check if database already exists
-    if not check_database_exists():
-        print("🔧 Creating new database...")
-        create_medicine_database()
-    else:
-        choice = input("Database already exists. Recreate? (y/n): ").lower()
-        if choice == 'y':
-            create_medicine_database()
-        else:
-            print("⏭️ Skipping database creation")
-    
-    print("\n✨ Initialization complete!")
+    print("➕ Adding column 'price_per' to medicines table")
+    add_price_per_column()

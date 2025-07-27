@@ -4,6 +4,8 @@ import google.generativeai as genai
 from dotenv import load_dotenv
 import requests
 import os
+from datetime import datetime, timedelta
+from collections import defaultdict
 load_dotenv()
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
@@ -476,11 +478,41 @@ def submit_animal_report():
         traceback.print_exc()
         return jsonify({'success': False, 'message': 'Error saving report'}), 500
 
-@app.route('/ngo/marketplace')
+@app.route("/ngo/marketplace")
 def ngo_marketplace():
-    if 'user_email' not in session or session.get('user_role') != 'ngo':
-        return redirect(url_for('login'))
-    return render_template('ngo_marketplace.html')
+    if "user_email" not in session:
+        return redirect("/login")
+
+    ngo_email = session["user_email"]
+
+    # Connect to medicine.db and fetch shopkeeper medicines
+    conn = sqlite3.connect("medicine.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT id,medicine_name, shopkeeper_email, price_per FROM medicines")
+    all_medicines = cursor.fetchall()
+    conn.close()
+    products = []
+    for i in all_medicines:
+    # Connect to users.db to get NGO name
+        conn = sqlite3.connect("users.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT [Shop Name] FROM shopkeepers WHERE email = ?", (i[2],))
+        ngo_name_result = cursor.fetchone()
+        conn.close()
+
+        shopkeeper_name = ngo_name_result[0] if ngo_name_result else "Unknown NGO"
+        products.append({
+                "id": i[0],
+                "name":i[1],
+                "shopkeer_name": shopkeeper_name,
+                "price": i[3],
+                "category": "medicine",
+                "image": "💊",
+            })
+
+        # Prepare product data
+    return render_template("ngo_marketplace.html", products=products)
+
 
 @app.route('/ngo/medicine-planner')
 def adherence_planner():
@@ -518,7 +550,7 @@ def ngo_donation():
     if 'user_email' not in session or session.get('user_role') != 'ngo':
         return redirect(url_for('login'))
 
-    from datetime import datetime, timedelta
+
 
     ngo_email = session['user_email']  # NGO's email from session
 
@@ -884,39 +916,8 @@ def find_vet_nearby():
         return jsonify({"error": str(e)}), 500
     
 
-# Add these functions to your app.py file
 
-# Initialize medicine database on startup
-def init_medicine_db():
-    conn = sqlite3.connect('medicine.db')
-    cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS medicines (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            medicine_name TEXT NOT NULL,
-            no_of_boxes INTEGER NOT NULL DEFAULT 0,
-            restock_level INTEGER NOT NULL DEFAULT 0,
-            shopkeeper_email TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (shopkeeper_email) REFERENCES shopkeepers("Email")
-        )
-    ''')
-    
-    cursor.execute('''
-        CREATE INDEX IF NOT EXISTS idx_medicine_name 
-        ON medicines(medicine_name)
-    ''')
-    
-    cursor.execute('''
-        CREATE INDEX IF NOT EXISTS idx_shopkeeper_email 
-        ON medicines(shopkeeper_email)
-    ''')
-    
-    conn.commit()
-    conn.close()
 
-# Call this function after your existing init_db() calls in app.py
-# init_medicine_db()
 
 # API endpoint to get shopkeeper's medicines
 @app.route('/api/shopkeeper-medicines', methods=['GET'])
@@ -940,7 +941,8 @@ def get_shopkeeper_medicines():
                 'id': medicine['id'],
                 'name': medicine['medicine_name'],
                 'quantity': medicine['no_of_boxes'],
-                'restockLevel': medicine['restock_level']
+                'restockLevel': medicine['restock_level'],
+                'price_per': medicine['price_per'] 
             })
         
         return jsonify(medicines_list)
@@ -981,14 +983,16 @@ def add_shopkeeper_medicine():
         
         # Insert new medicine
         cursor.execute('''
-            INSERT INTO medicines (medicine_name, no_of_boxes, restock_level, shopkeeper_email)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO medicines (medicine_name, no_of_boxes, restock_level, price_per, shopkeeper_email)
+            VALUES (?, ?, ?, ?, ?)
         ''', (
             data['name'],
             int(data.get('quantity', 0)),
             int(data.get('restockLevel', 5)),
+            int(data.get('price', 0)),  # 👈 Yeh line add ki
             shopkeeper_email
         ))
+
         
         medicine_id = cursor.lastrowid
         conn.commit()
@@ -1074,6 +1078,110 @@ def delete_shopkeeper_medicine(medicine_id):
     finally:
         if conn:
             conn.close()
+@app.route('/checkout', methods=['POST'])
+def checkout():
+    if 'user_email' not in session:
+        return jsonify({'status': 'error', 'message': 'User not logged in'}), 403
+
+    try:
+        data = request.get_json()
+        today = datetime.today()
+        # print(data)
+        cart = data.get('cart', [])
+        print(cart)
+
+        if not cart:
+            return jsonify({'status': 'error', 'message': 'Cart is empty'}), 400
+
+        conn = sqlite3.connect('medicine.db')  # Replace with actual DB if needed
+        cursor = conn.cursor()
+
+        for item in cart:
+            cursor.execute("""
+                INSERT INTO orders (user_email, product_id, quantity,price,total_price,order_time)
+                VALUES (?, ?, ?,?,?,?)
+            """, (session['user_email'], item['id'], item['quantity'],item['price'],item['quantity']*item['price'],today))
+
+        conn.commit()
+        conn.close()
+
+        return jsonify({'status': 'success', 'message': 'Order placed successfully'})
+
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+from collections import defaultdict
+
+@app.route('/my_orders')
+def get_orders():
+    user_email = session.get('user_email')
+    if not user_email:
+        return jsonify({'error': 'Not logged in'}), 401
+
+    conn = sqlite3.connect('medicine.db')
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT 
+            id, product_id, quantity, price, total_price, order_time, status
+        FROM orders
+        WHERE user_email = ?
+        ORDER BY order_time DESC
+    """, (user_email,))
+    orders = cursor.fetchall()
+
+    product_ids = set(row[1] for row in orders)
+    placeholders = ','.join(['?'] * len(product_ids)) if product_ids else 'NULL'
+
+    cursor.execute(f"""
+        SELECT id, medicine_name
+        FROM medicines 
+        WHERE id IN ({placeholders})
+    """, list(product_ids))
+    product_data = {row[0]: row[1] for row in cursor.fetchall()}
+
+    conn.close()
+
+    grouped_orders = defaultdict(list)
+    for order in orders:
+        order_id, product_id, qty, price, total_price, order_time, status = order
+        product_name = product_data.get(product_id, 'Unknown')
+
+        grouped_orders[order_time].append({
+            'product_id': product_id,
+            'product_name': product_name,
+            'quantity': qty,
+            'price': price,
+            'total_price': total_price,
+            'status': status
+        })
+
+    # Convert to JSON serializable structure
+    result = []
+    for time, items in grouped_orders.items():
+        result.append({
+            'order_time': time,
+            'items': items
+        })
+
+    return jsonify(result)
+
+@app.route('/api/shopkeepers')
+def get_shopkeepers():
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT [Owner Name] FROM shopkeepers")
+    shopkeepers = cursor.fetchall()
+    conn.close()
+    
+    result = []
+    for row in shopkeepers:
+        name = row[0]
+        initial = name[0].upper() if name else "S"
+        result.append({'name': name, 'initial': initial})
+    
+    return jsonify(result)
+
 
  
 # ------------------- RUN APP -------------------
