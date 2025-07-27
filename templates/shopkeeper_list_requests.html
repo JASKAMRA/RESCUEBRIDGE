@@ -1,144 +1,138 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Prescription Medicine Request Planner</title>
-    <link rel="stylesheet" href="/static/styles/shopkeeper_list_requests.css">
-</head>
-<body>
+    <link rel="stylesheet" href="/static/styles/shopkeeper_list_requests.css" />
+  </head>
+  <body>
     <div class="container">
-        <div class="header">
-            <h1>Prescription Medicine Request Planner</h1>
-            <p>Review and manage prescription requests from patients</p>
-            
-            <div class="stats">
-                <div class="stat-card pending">
-                    <svg class="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <div class="stat-content">
-                        <h3>Pending Requests</h3>
-                        <div class="number" id="pending-count">0</div>
-                    </div>
-                </div>
-                
-                <div class="stat-card accepted">
-                    <svg class="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                    <div class="stat-content">
-                        <h3>Accepted</h3>
-                        <div class="number" id="accepted-count">0</div>
-                    </div>
-                </div>
-                
-                <div class="stat-card denied">
-                    <svg class="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                    <div class="stat-content">
-                        <h3>Denied</h3>
-                        <div class="number" id="denied-count">0</div>
-                    </div>
-                </div>
-            </div>
-        </div>
+      <div class="header">
+        <h1>YOUR RECENT REQUESTS</h1>
+        <p>Review and manage requests from ngo</p>
 
-        <div class="requests-container" id="requests-container">
-            <!-- Requests will be populated here -->
+        <div class="stats">
+          <div class="stat-card pending">
+            <svg
+              class="stat-icon"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              ></path>
+            </svg>
+            <div class="stat-content">
+              <h3>Pending Requests</h3>
+              <div class="number" id="pending-count">0</div>
+            </div>
+          </div>
+
+          <div class="stat-card accepted">
+            <svg
+              class="stat-icon"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M5 13l4 4L19 7"
+              ></path>
+            </svg>
+            <div class="stat-content">
+              <h3>Accepted</h3>
+              <div class="number" id="accepted-count">0</div>
+            </div>
+          </div>
+
+          <div class="stat-card denied">
+            <svg
+              class="stat-icon"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              ></path>
+            </svg>
+            <div class="stat-content">
+              <h3>Denied</h3>
+              <div class="number" id="denied-count">0</div>
+            </div>
+          </div>
         </div>
+      </div>
+
+      <div class="requests-container" id="requests-container">
+        <!-- Requests will be populated here -->
+      </div>
     </div>
 
     <script>
-        // Sample data
-        let requests = [
-            {
-                id: 1,
-                patientName: "John Smith",
-                medicine: "Amoxicillin 500mg",
-                quantity: 30,
-                requestDate: "2024-07-10",
-                status: "pending",
-                priority: "normal",
-                notes: "For respiratory infection"
-            },
-            {
-                id: 2,
-                patientName: "Sarah Johnson",
-                medicine: "Lisinopril 10mg",
-                quantity: 90,
-                requestDate: "2024-07-12",
-                status: "pending",
-                priority: "high",
-                notes: "Hypertension maintenance"
-            },
-            {
-                id: 3,
-                patientName: "Michael Davis",
-                medicine: "Metformin 1000mg",
-                quantity: 60,
-                requestDate: "2024-07-13",
-                status: "pending",
-                priority: "normal",
-                notes: "Diabetes management"
-            },
-            {
-                id: 4,
-                patientName: "Emma Wilson",
-                medicine: "Ibuprofen 400mg",
-                quantity: 20,
-                requestDate: "2024-07-14",
-                status: "pending",
-                priority: "low",
-                notes: "Pain relief"
-            },
-            {
-                id: 5,
-                patientName: "David Brown",
-                medicine: "Omeprazole 20mg",
-                quantity: 30,
-                requestDate: "2024-07-15",
-                status: "pending",
-                priority: "normal",
-                notes: "Acid reflux treatment"
-            }
-        ];
+      let requests = [];
 
-        // Helper functions
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric'
-            });
+      // Helper functions
+      function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        });
+      }
+
+      function updateStats() {
+        const pendingCount = requests.filter(
+          (r) => r.status === "pending"
+        ).length;
+        const acceptedCount = requests.filter(
+          (r) => r.status === "accepted"
+        ).length;
+        const deniedCount = requests.filter(
+          (r) => r.status === "denied"
+        ).length;
+
+        document.getElementById("pending-count").textContent = pendingCount;
+        document.getElementById("accepted-count").textContent = acceptedCount;
+        document.getElementById("denied-count").textContent = deniedCount;
+      }
+
+      async function handleDecision(id, decision) {
+        const requestIndex = requests.findIndex((r) => r.id === id);
+        if (requestIndex !== -1) {
+          requests[requestIndex].status = decision;
+
+          // Send update to backend
+          await fetch(`/shopkeeper/requests/${id}`, {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ status: decision }),
+          });
+
+          renderRequests();
+          updateStats();
         }
+      }
 
-        function updateStats() {
-            const pendingCount = requests.filter(r => r.status === 'pending').length;
-            const acceptedCount = requests.filter(r => r.status === 'accepted').length;
-            const deniedCount = requests.filter(r => r.status === 'denied').length;
+      function renderRequests() {
+        const container = document.getElementById("requests-container");
 
-            document.getElementById('pending-count').textContent = pendingCount;
-            document.getElementById('accepted-count').textContent = acceptedCount;
-            document.getElementById('denied-count').textContent = deniedCount;
-        }
-
-        function handleDecision(id, decision) {
-            const requestIndex = requests.findIndex(r => r.id === id);
-            if (requestIndex !== -1) {
-                requests[requestIndex].status = decision;
-                renderRequests();
-                updateStats();
-            }
-        }
-
-        function renderRequests() {
-            const container = document.getElementById('requests-container');
-            
-            if (requests.length === 0) {
-                container.innerHTML = `
+        if (requests.length === 0) {
+          container.innerHTML = `
                     <div class="empty-state">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 7.172V5L8 4z"></path>
@@ -146,93 +140,107 @@
                         <p>No prescription requests found.</p>
                     </div>
                 `;
-                return;
-            }
-
-            let htmlContent = '';
-            
-            for (let i = 0; i < requests.length; i++) {
-                const request = requests[i];
-                
-                htmlContent += '<div class="request-card">';
-                htmlContent += '<div class="request-header">';
-                htmlContent += '<div class="patient-name">';
-                htmlContent += '<svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">';
-                htmlContent += '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>';
-                htmlContent += '</svg>';
-                htmlContent += request.patientName;
-                htmlContent += '</div>';
-                htmlContent += '<span class="badge priority-' + request.priority + '">' + request.priority.toUpperCase() + '</span>';
-                htmlContent += '<span class="badge status-' + request.status + '">' + request.status.toUpperCase() + '</span>';
-                htmlContent += '</div>';
-                
-                htmlContent += '<div class="request-details">';
-                htmlContent += '<div class="detail-item">';
-                htmlContent += '<svg class="detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">';
-                htmlContent += '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 7.172V5L8 4z"></path>';
-                htmlContent += '</svg>';
-                htmlContent += '<div class="detail-content">';
-                htmlContent += '<h4>Medicine</h4>';
-                htmlContent += '<p>' + request.medicine + '</p>';
-                htmlContent += '</div>';
-                htmlContent += '</div>';
-                
-                htmlContent += '<div class="detail-item">';
-                htmlContent += '<div class="detail-content">';
-                htmlContent += '<h4>Quantity</h4>';
-                htmlContent += '<p>' + request.quantity + ' tablets</p>';
-                htmlContent += '</div>';
-                htmlContent += '</div>';
-                
-                htmlContent += '<div class="detail-item">';
-                htmlContent += '<svg class="detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">';
-                htmlContent += '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>';
-                htmlContent += '</svg>';
-                htmlContent += '<div class="detail-content">';
-                htmlContent += '<h4>Request Date</h4>';
-                htmlContent += '<p>' + formatDate(request.requestDate) + '</p>';
-                htmlContent += '</div>';
-                htmlContent += '</div>';
-                
-                htmlContent += '<div class="detail-item">';
-                htmlContent += '<div class="detail-content">';
-                htmlContent += '<h4>Notes</h4>';
-                htmlContent += '<p>' + request.notes + '</p>';
-                htmlContent += '</div>';
-                htmlContent += '</div>';
-                htmlContent += '</div>';
-                
-                htmlContent += '<div class="actions">';
-                if (request.status === 'pending') {
-                    htmlContent += '<button class="btn btn-accept" onclick="handleDecision(' + request.id + ', \'accepted\')">';
-                    htmlContent += '<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">';
-                    htmlContent += '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>';
-                    htmlContent += '</svg>';
-                    htmlContent += 'Accept';
-                    htmlContent += '</button>';
-                    htmlContent += '<button class="btn btn-deny" onclick="handleDecision(' + request.id + ', \'denied\')">';
-                    htmlContent += '<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">';
-                    htmlContent += '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>';
-                    htmlContent += '</svg>';
-                    htmlContent += 'Deny';
-                    htmlContent += '</button>';
-                } else {
-                    htmlContent += '<button class="btn btn-revert" onclick="handleDecision(' + request.id + ', \'pending\')">';
-                    htmlContent += 'Revert to Pending';
-                    htmlContent += '</button>';
-                }
-                htmlContent += '</div>';
-                htmlContent += '</div>';
-            }
-            
-            container.innerHTML = htmlContent;
+          return;
         }
 
-        // Initialize the application
-        document.addEventListener('DOMContentLoaded', function() {
-            renderRequests();
-            updateStats();
-        });
+        let htmlContent = "";
+
+        for (let i = 0; i < requests.length; i++) {
+          const request = requests[i];
+
+          htmlContent += '<div class="request-card">';
+          htmlContent += '<div class="request-header">';
+          htmlContent += '<div class="patient-name">';
+          htmlContent +=
+            '<svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">';
+          htmlContent +=
+            '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>';
+          htmlContent += "</svg>";
+          htmlContent += request.user_email;
+          htmlContent += "</div>";
+          htmlContent += "</div>";
+
+          htmlContent += '<div class="request-details">';
+          htmlContent += '<div class="detail-item">';
+          htmlContent +=
+            '<svg class="detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">';
+          htmlContent +=
+            '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 7.172V5L8 4z"></path>';
+          htmlContent += "</svg>";
+          htmlContent += '<div class="detail-content">';
+          htmlContent += "<h4>Medicine</h4>";
+          htmlContent += "<p>" + request.medicine_name + "</p>";
+          htmlContent += "</div>";
+          htmlContent += "</div>";
+
+          htmlContent += '<div class="detail-item">';
+          htmlContent += '<div class="detail-content">';
+          htmlContent += "<h4>Quantity</h4>";
+          htmlContent += "<p>" + request.quantity + " tablets</p>";
+          htmlContent += "</div>";
+          htmlContent += "</div>";
+
+          htmlContent += '<div class="detail-item">';
+          htmlContent +=
+            '<svg class="detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">';
+          htmlContent +=
+            '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>';
+          htmlContent += "</svg>";
+          htmlContent += '<div class="detail-content">';
+          htmlContent += "<h4>Request Date</h4>";
+          htmlContent += "<p>" + formatDate(request.order_time) + "</p>";
+          htmlContent += "</div>";
+          htmlContent += "</div>";
+
+          htmlContent += '<div class="actions">';
+          if (request.status === "pending") {
+            htmlContent +=
+              '<button class="btn btn-accept" onclick="handleDecision(' +
+              request.id +
+              ", 'accepted')\">";
+            htmlContent +=
+              '<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">';
+            htmlContent +=
+              '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>';
+            htmlContent += "</svg>";
+            htmlContent += "Accept";
+            htmlContent += "</button>";
+            htmlContent +=
+              '<button class="btn btn-deny" onclick="handleDecision(' +
+              request.id +
+              ", 'denied')\">";
+            htmlContent +=
+              '<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">';
+            htmlContent +=
+              '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>';
+            htmlContent += "</svg>";
+            htmlContent += "Deny";
+            htmlContent += "</button>";
+          } else {
+            htmlContent +=
+              '<button class="btn btn-revert" onclick="handleDecision(' +
+              request.id +
+              ", 'pending')\">";
+            htmlContent += "Revert to Pending";
+            htmlContent += "</button>";
+          }
+          htmlContent += "</div>";
+          htmlContent += "</div>";
+        }
+
+        container.innerHTML = htmlContent;
+      }
+      async function fetchRequests() {
+        const res = await fetch("/shopkeeper/requests");
+        requests = await res.json();
+        renderRequests();
+        updateStats();
+      }
+
+      // Initialize the application
+      document.addEventListener("DOMContentLoaded", function () {
+        fetchRequests();
+      });
     </script>
-</body>
+  </body>
 </html>

@@ -4,7 +4,7 @@ import google.generativeai as genai
 from dotenv import load_dotenv
 import requests
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from collections import defaultdict
 load_dotenv()
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
@@ -1301,6 +1301,131 @@ def accept_report(report_id):
         print(f"Error accepting report: {e}")
         return redirect(url_for('emergency_reports'))
  
+@app.route('/shopkeeper/requests')
+def shopkeeper_requests():
+    user_email = session.get('user_email')
+    if not user_email:
+        return jsonify({'error': 'Not logged in'}), 401
+
+    conn = sqlite3.connect('medicine.db')
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    # Get all medicines added by this shopkeeper
+    cursor.execute('SELECT id FROM medicines WHERE shopkeeper_email = ?', (user_email,))
+    medicine_ids = [row['id'] for row in cursor.fetchall()]
+
+    if not medicine_ids:
+        conn.close()
+        return jsonify([])
+
+    placeholders = ','.join(['?'] * len(medicine_ids))
+    query = f'''
+        SELECT 
+            orders.id,
+            orders.status,
+            orders.quantity,
+            orders.order_time,
+            orders.price,
+            orders.total_price,
+            orders.product_id,
+            orders.user_email,
+            medicines.medicine_name AS medicine_name
+        FROM orders
+        JOIN medicines ON orders.product_id = medicines.id
+        WHERE orders.product_id IN ({placeholders})
+        ORDER BY orders.order_time DESC
+    '''
+    cursor.execute(query, medicine_ids)
+    orders = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    return jsonify(orders)
+
+
+@app.route('/shopkeeper/requests/<int:order_id>', methods=['PATCH'])
+def update_request_status(order_id):
+    try:
+        data = request.get_json()
+        new_status = data.get('status')
+
+        if not new_status:
+            return jsonify({'error': 'Missing status'}), 400
+
+        conn = sqlite3.connect('medicine.db')
+        cursor = conn.cursor()
+
+        # Step 1: Get current status and product_id
+        cursor.execute('SELECT status, product_id FROM orders WHERE id = ?', (order_id,))
+        row = cursor.fetchone()
+
+        if not row:
+            return jsonify({'message': 'Order not found'}), 404
+
+        current_status, product_id = row
+
+        # Step 2: Update status
+        cursor.execute('UPDATE orders SET status = ? WHERE id = ?', (new_status, order_id))
+
+        # Step 3: Handle stock changes
+        if current_status != 'accepted' and new_status == 'accepted':
+            # Accepting now → reduce stock
+            cursor.execute('UPDATE medicines SET no_of_boxes = no_of_boxes - 1 WHERE id = ?', (product_id,))
+        elif current_status == 'accepted' and new_status != 'accepted':
+            # Reverting from accepted → increase stock
+            cursor.execute('UPDATE medicines SET no_of_boxes = no_of_boxes + 1 WHERE id = ?', (product_id,))
+
+        conn.commit()
+        return jsonify({'success': True, 'updated_status': new_status})
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({'error': 'An error occurred'}), 500
+
+    finally:
+        conn.close()
+ 
+@app.route('/shopkeeper/dashboard-stats')
+def shopkeeper_dashboard_stats():
+    user_email = session.get('user_email')
+    if not user_email:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    conn = sqlite3.connect('medicine.db')
+    cursor = conn.cursor()
+
+    today = date.today().isoformat()  # 'YYYY-MM-DD'
+
+    # 🟢 1. Requests Today (orders for today's date)
+    cursor.execute('''
+        SELECT COUNT(*) FROM orders
+        WHERE DATE(order_time) = ?
+    ''', (today,))
+    requests_today = cursor.fetchone()[0]
+
+    # 🟡 2. Stocks Low (no_of_boxes < restock_level for this shopkeeper)
+    cursor.execute('''
+        SELECT COUNT(*) FROM medicines
+        WHERE shopkeeper_email = ? AND no_of_boxes < restock_level
+    ''', (user_email,))
+    stocks_low = cursor.fetchone()[0]
+
+    # 🔴 3. Pending Orders (for this shopkeeper’s medicines)
+    cursor.execute('''
+        SELECT COUNT(*)
+        FROM orders
+        WHERE status = 'pending' AND product_id IN (
+            SELECT id FROM medicines WHERE shopkeeper_email = ?
+        )
+    ''', (user_email,))
+    pending_orders = cursor.fetchone()[0]
+
+    conn.close()
+    return jsonify({
+        'requests_today': requests_today,
+        'stocks_low': stocks_low,
+        'pending_orders': pending_orders
+    })
+
 # ------------------- RUN APP -------------------
 if __name__ == '__main__':
     app.run(debug=True)
