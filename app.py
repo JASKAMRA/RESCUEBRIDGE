@@ -1229,7 +1229,9 @@ def dashboard_ngo():
                              reports_handled_count=0,
                              registered_animals_count=0)
 # 3. Fix the emergency_reports route (replace the existing one)
-@app.route('/ngo/emergency-reports')
+# Replace your emergency_reports function with this updated one:
+
+@app.route('/ngo/emergency_reports_ngo')
 def emergency_reports():
     if 'user_email' not in session or session.get('user_role') != 'ngo':
         return redirect(url_for('login'))
@@ -1240,17 +1242,37 @@ def emergency_reports():
         cursor = conn.cursor()
         
         # Get all unhandled reports
-        cursor.execute("SELECT * FROM reported_animals WHERE status = 'Submitted' ORDER BY date DESC")
+        cursor.execute('''
+            SELECT * FROM reported_animals 
+            WHERE status = 'Submitted'
+            ORDER BY date DESC
+        ''')
         reports = cursor.fetchall()
+        
+        # Get all images for each report
+        reports_with_images = []
+        for report in reports:
+            report_dict = dict(report)
+            
+            # Get all images for this report
+            cursor.execute('''
+                SELECT id FROM animal_images 
+                WHERE report_id = ?
+                ORDER BY id ASC
+            ''', (report['id'],))
+            images = cursor.fetchall()
+            
+            # Add images list to report
+            report_dict['images'] = [img['id'] for img in images]
+            reports_with_images.append(report_dict)
+        
         conn.close()
         
-        return render_template('emergency_reports_ngo.html', emergency_reports=reports)
+        return render_template('emergency_reports_ngo.html', emergency_reports=reports_with_images)
         
     except Exception as e:
         print(f"Error fetching emergency reports: {e}")
-        # If there's any error, return empty reports
         return render_template('emergency_reports_ngo.html', emergency_reports=[])
-
 # 4. Fix the accept_report route (replace the existing one)
 @app.route('/ngo/accept-report/<int:report_id>', methods=['POST'])
 def accept_report(report_id):

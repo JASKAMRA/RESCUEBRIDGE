@@ -4,6 +4,33 @@
   <meta charset="UTF-8" />
   <title>Emergency Reports - NGO</title>
   <link rel="stylesheet" href="/static/styles/ngo_dashboard.css" />
+  <style>
+    .image-gallery {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 15px;
+    }
+    .image-gallery img {
+      max-width: 150px;
+      max-height: 120px;
+      border-radius: 8px;
+      object-fit: cover;
+      border: 2px solid #ddd;
+    }
+    .no-image-placeholder {
+      width: 150px;
+      height: 120px;
+      background-color: #e0e0e0;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #666;
+      font-size: 12px;
+      text-align: center;
+    }
+  </style>
 </head>
 <body>
   <div class="dashboard-wrapper">
@@ -12,24 +39,39 @@
       <p class="dashboard-subtitle">Below are the active emergency reports requiring attention.</p>
     </header>
 
-  {% if emergency_reports %}
-    {% for report in emergency_reports %}
-    <div style="border: 1px solid #ccc; padding: 15px; margin-bottom: 15px; border-radius: 10px; background-color: #f9f9f9;">
-      <p><strong>ID:</strong> {{ report['id'] }}</p>
-      <p><strong>Animal Type:</strong> {{ report['animal_type'] }}</p>
-      <p><strong>Condition:</strong> {{ report['condition'] }}</p>
-      <p><strong>Description:</strong> {{ report['description'] }}</p>
-      <p><strong>Phone:</strong> {{ report['phone'] }}</p>
-      <p><strong>Name:</strong> {{ report['name'] }}</p>
-      <p><strong>Date:</strong> {{ report['date'] }}</p>
-      <p><strong>Status:</strong> {{ report['status'] }}</p>
+    {% if emergency_reports %}
+      {% for report in emergency_reports %}
+      <div style="border: 1px solid #ccc; padding: 15px; margin-bottom: 15px; border-radius: 10px; background-color: #f9f9f9;">
+        
+        <!-- Multiple Images Section -->
+        <div class="image-gallery">
+          {% if report['images'] %}
+            {% for image_id in report['images'] %}
+              <img src="{{ url_for('get_animal_image', image_id=image_id) }}" 
+                   alt="Animal Image {{ loop.index }}">
+            {% endfor %}
+          {% else %}
+            <div class="no-image-placeholder">
+              No Images Available
+            </div>
+          {% endif %}
+        </div>
 
-    <form action="{{ url_for('accept_report', report_id=report['id']) }}" method="POST" style="margin-top: 10px;">
-      <button type="submit">✅ Accept</button>
-    </form>
-  </div>
-{% endfor %}
+        <p><strong>ID:</strong> {{ report['id'] }}</p>
+        <p><strong>Animal Type:</strong> {{ report['animal_type'] }}</p>
+        <p><strong>Condition:</strong> {{ report['condition'] }}</p>
+        <p><strong>Description:</strong> {{ report['description'] }}</p>
+        <p><strong>Phone:</strong> {{ report['phone'] }}</p>
+        <p><strong>Name:</strong> {{ report['name'] }}</p>
+        <p><strong>Date:</strong> {{ report['date'] }}</p>
+        <p><strong>Status:</strong> {{ report['status'] }}</p>
+        <p><strong>Total Images:</strong> {{ report['images']|length if report['images'] else 0 }}</p>
 
+        <form action="{{ url_for('accept_report', report_id=report['id']) }}" method="POST" style="margin-top: 10px;">
+          <button type="submit">✅ Accept</button>
+        </form>
+      </div>
+      {% endfor %}
 
     {% else %}
       <p style="text-align: center; margin-top: 30px;">No emergency reports available right now.</p>
